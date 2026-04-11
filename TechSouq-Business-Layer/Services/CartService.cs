@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
 using TechSouq.Domain.Entities;
@@ -13,129 +10,110 @@ namespace TechSouq.Application.Services
 {
     public class CartService
     {
-        private readonly ICartRepository _cartIRepository;
+        private readonly ICartRepository _cartRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CartService> _logger;
 
-        public CartService(ICartRepository CartIRepository, IMapper mapper , ILogger<CartService> logger)
+        public CartService(ICartRepository cartRepository, IMapper mapper, ILogger<CartService> logger)
         {
-            _cartIRepository = CartIRepository;
+            _cartRepository = cartRepository;
             _mapper = mapper;
             _logger = logger;
         }
 
         public async Task<OperationResult<int>> AddCart(CartDto cartDto)
         {
-            try
-            {
-                var Cart = _mapper.Map<Cart>(cartDto);
-                var newId = await _cartIRepository.AddCart(Cart);
+            var cart = _mapper.Map<Cart>(cartDto);
+            var newId = await _cartRepository.AddCart(cart);
 
-                if(newId <=0)
-                {
-                    _logger.LogError("Created Cart Failed With Data: {@Cart}", Cart);
-                    return OperationResult<int>.Failure("Create Cart Faile Please Try Later");
-                }
-
-                _logger.LogInformation("Created Cart Successfully With Data: {@Cart}", Cart);
-                return OperationResult<int>.Success(newId);
-            }
-            catch(Exception ex)
+            if (newId == 0)
             {
-                _logger.LogError(ex,"Created Cart Failed With Data: {@Cart}", cartDto);
-                return OperationResult<int>.Failure("Create Cart Faile Please Try Later");
+                _logger.LogError("Failed to add cart to the database");
+                return OperationResult<int>.Failure();
             }
 
-           
+            _logger.LogInformation("Created Cart Successfully With Id: {Id}", newId);
+            return OperationResult<int>.Success(newId);
         }
 
-        public async Task<OperationResult<CartDto>> GetCart(int CartId)
+        public async Task<OperationResult<CartDto>> GetCart(int cartId)
         {
-            if (CartId <= 0)
+            if (cartId <= 0)
             {
-                _logger.LogWarning("Read Cart Invalid Data CartId: {CartId}", CartId);
-                return OperationResult<CartDto>.BadRequest($"Invalid Data", new List<string> { $"Invalid CartId: {CartId}" });
-               
+                _logger.LogWarning("Read Cart Invalid Data CartId: {CartId}", cartId);
+                return OperationResult<CartDto>.BadRequest("Invalid Data", new List<string> { $"Invalid CartId: {cartId}" });
             }
 
-            try
+            var result = await _cartRepository.GetCart(cartId);
+
+            if (result == null)
             {
-                var result = await _cartIRepository.GetCart(CartId);
-
-                if(result == null)
-                {
-                    _logger.LogError("Read Cart Failed");
-                    return OperationResult<CartDto>.Failure("Read Cart Faile Please Try Later");
-                }
-
-                var cartDto = _mapper.Map<CartDto>(result);
-
-                _logger.LogInformation("Read Cart Successfully Data: {cartDto}", cartDto);
-                return OperationResult<CartDto>.Success(cartDto);
+                _logger.LogWarning("Read {CartId} Failed. Not Found.", cartId);
+                return OperationResult<CartDto>.NotFound("Cart Not Found");
             }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Read Cart Failed");
-                return OperationResult<CartDto>.Failure("Read Cart Failed Please Try Later");
-            }
+
+            var cartDto = _mapper.Map<CartDto>(result);
+
+            _logger.LogInformation("Read Cart Successfully Id: {CartId}", cartId);
+            return OperationResult<CartDto>.Success(cartDto);
         }
 
         public async Task<OperationResult<bool>> UpdateCart(CartDto cartDto)
         {
-
-            try
+            if (cartDto.Id <= 0)
             {
-                var cart = _mapper.Map<Cart>(cartDto);
-                var result = await _cartIRepository.UpdateCart(cart);
-
-                if(!result)
-                {
-                    _logger.LogError("Update Cart Failed Date: {@cart}", cart);
-                    return OperationResult<bool>.Failure("Update Cart Failed Please Try Later");
-                }
-
-                _logger.LogInformation("Update Cart Successfully Date: {@cart}", cart);
-                return OperationResult<bool>.Success(result);
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Read Cart Failed");
-                return OperationResult<bool>.Failure("Read Cart Failed Please Try Later");
+                _logger.LogWarning("Update Cart {CartId} Failed - Invalid Id", cartDto.Id);
+                return OperationResult<bool>.BadRequest("Invalid id", new List<string> { $"Invalid id {cartDto.Id}" });
             }
 
+            var cart = await _cartRepository.GetCart(cartDto.Id);
+
+            if (cart == null)
+            {
+                _logger.LogWarning("Cart id: {Id} Not Found", cartDto.Id);
+                return OperationResult<bool>.NotFound($"Cart id: {cartDto.Id} Not Found"); 
+            }
+
+            _mapper.Map(cartDto, cart);
+
+            var result = await _cartRepository.UpdateCart(cart);
+
+            if (!result)
+            {
+                _logger.LogError("Update cart With id: {Id} Failed", cartDto.Id);
+                return OperationResult<bool>.Failure();
+            }
+
+            _logger.LogInformation("Update cart With Id {Id} Successfully", cart.Id);
+            return OperationResult<bool>.Success(result);
         }
 
-        public async Task<OperationResult<bool>> DeleteCart(int CartId)
+        public async Task<OperationResult<bool>> DeleteCart(int cartId)
         {
-            if (CartId <= 0)
+            if (cartId <= 0)
             {
-                _logger.LogWarning("Read Cart Invalid Data CartId: {CartId}", CartId);
-                return OperationResult<bool>.BadRequest($"Invalid Data", new List<string> { $"Invalid CartId: {CartId}" });
-
+                _logger.LogWarning("Delete Cart Invalid Data CartId: {CartId}", cartId);
+                return OperationResult<bool>.BadRequest("Invalid Data", new List<string> { $"Invalid CartId: {cartId}" });
             }
 
-            try
+            var isExists = await _cartRepository.IsCartExists(cartId);
+
+            if (!isExists)
             {
-                var result = await _cartIRepository.DeleteCart(CartId);
-
-                if(!result)
-                {
-                    _logger.LogError("Delete Cart Failed With Id: {Id}", CartId);
-                    return OperationResult<bool>.Failure("Delete Cart Failed Please Try Later");
-                }
-
-                _logger.LogInformation("Delete Cart Successfully Id: {Id}", CartId);
-                return OperationResult<bool>.Success(result);
-
+                _logger.LogWarning("Cart With Id: {CartId} Not Found. Deleted Failed", cartId);
+                return OperationResult<bool>.NotFound($"Cart With Id: {cartId} Not Found");
             }
-            catch(Exception ex)
+
+            var result = await _cartRepository.DeleteCart(cartId);
+
+            if (!result)
             {
-                _logger.LogError(ex, "Read Cart Failed");
-                return OperationResult<bool>.Failure("Read Cart Failed Please Try Later");
+                _logger.LogError("An unexpected error occurred while deleting Cart with Id {CartId}.", cartId);
+                return OperationResult<bool>.Failure();
             }
-          
+
+            _logger.LogInformation("Delete Cart Successfully Id: {Id}", cartId);
+            return OperationResult<bool>.Success(result);
         }
-
-
     }
 }

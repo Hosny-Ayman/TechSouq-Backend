@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
@@ -24,9 +25,9 @@ namespace TechSouq.DataLayer.Repositories
         {
              _AppDbContext.Brands.Add(brand);
 
-            await _AppDbContext.SaveChangesAsync();
+           var save = await _AppDbContext.SaveChangesAsync();
 
-            return brand.Id;
+            return save > 0 ? brand.Id : 0;
         }
 
         public async Task<bool> DeleteBrand(int brandId)
@@ -35,16 +36,26 @@ namespace TechSouq.DataLayer.Repositories
 
         }
 
-        public async Task<Brand> GetBrand(int BrandId)
+        public async Task<Brand> GetBrand(int BrandId, bool trackingChanges = true)
         {
-            return await _AppDbContext.Brands.AsNoTracking().FirstOrDefaultAsync(x => x.Id == BrandId);
+            var query = _AppDbContext.Brands.AsQueryable();
+
+            if(!trackingChanges)
+                query = query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(x => x.Id == BrandId);
         }
 
         public async Task<bool> UpdateBrand(Brand brand)
         {
-            _AppDbContext.Brands.Update(brand);
+         
 
             return await _AppDbContext.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> IsBrandExists(int CartItemId)
+        {
+            return await _AppDbContext.Brands.AnyAsync(x => x.Id == CartItemId);
         }
     }
 }

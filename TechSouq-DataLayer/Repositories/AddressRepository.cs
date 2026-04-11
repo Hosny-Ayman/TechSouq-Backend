@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TechSouq.Infrastructure.Data;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Domain.Entities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace TechSouq.Infrastructure.Repositories
 {
@@ -23,14 +24,19 @@ namespace TechSouq.Infrastructure.Repositories
         {
              _Context.Addresses.Add(address);
 
-            await _Context.SaveChangesAsync();
-            
-            return address.Id;
+            var save = await _Context.SaveChangesAsync();
+
+
+            return save > 0 ? address.Id : 0;
 
         }
 
         public async Task <bool> DeleteAddress(int AddresId)
         {
+           
+
+            
+
             int Rowseffected = await _Context.Addresses.Where(x => x.Id == AddresId).ExecuteDeleteAsync();
 
             return Rowseffected > 0;
@@ -45,12 +51,28 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task <bool> UpdateAdress(Address address)
+        public async Task <bool> UpdateAddress(Address address)
         {
-            _Context.Addresses.Update(address);
+          
 
             return await _Context.SaveChangesAsync() > 0;
 
+        }
+
+        public async Task<Address> GetAddressById(int AddresId,bool trackingChanges=true)
+        {
+            var query = _Context.Addresses.AsQueryable();
+            if (!trackingChanges)
+                query = query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(x => x.Id == AddresId);
+        }
+
+        public async Task<bool> IsAddressExists(int AddressId, int userId)
+        {
+
+           
+            return await _Context.Addresses.AnyAsync(x => x.UserId == userId && x.Id == AddressId);
         }
     }
 }

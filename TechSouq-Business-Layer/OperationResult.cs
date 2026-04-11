@@ -42,17 +42,17 @@ namespace TechSouq.Application
             return new OperationResult<T>(true, data, message, OperationStatus.Success, null);
         }
 
-        public static OperationResult<T> Failure(string message)
+        public static OperationResult<T> Failure(string message = "An unexpected error occurred. Please try again later.")
         {
             return new OperationResult<T>(false, default, message, OperationStatus.ServerError, null);
         }
 
-        public static OperationResult<T> NotFound(string message)
+        public static OperationResult<T> NotFound(string message = "The requested resource was not found.")
         {
             return new OperationResult<T>(false, default, message, OperationStatus.NotFound, null);
         }
 
-        public static OperationResult<T> BadRequest(string message,List<string>errors = null)
+        public static OperationResult<T> BadRequest(string message = "Invalid request data or validation failed.", List<string>errors = null)
         {
             return new OperationResult<T>(false, default, message, OperationStatus.BadRequest, errors);
         }

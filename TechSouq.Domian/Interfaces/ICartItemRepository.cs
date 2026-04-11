@@ -12,11 +12,13 @@ namespace TechSouq.Domain.Interfaces
 
         Task<int> AddCartItem(CartItem cartItem);
 
-        Task<List<CartItem>> GetCartItems(int id);
+        Task<List<CartItem>> GetCartItems(int id, bool trackingChanges = true);
 
         Task<bool> UpdateCartItems (List <CartItem> cartItem);
 
         Task<bool> DeleteCartItem (int id);
+
+        Task<bool> IsCartItemExists(int CartItemId);
 
     }
 }

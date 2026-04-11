@@ -14,9 +14,13 @@ namespace TechSouq.Domain.Interfaces
 
         Task <ICollection<Address>> GetAddresses(int UserId);
 
-        Task <bool> UpdateAdress(Address address);
+        Task <bool> UpdateAddress(Address address);
 
         Task <bool> DeleteAddress(int AddresId);
+
+        Task <Address> GetAddressById(int AddresId, bool trackingChanges = true);
+
+        Task<bool> IsAddressExists(int AddressId, int userId);
 
        
 

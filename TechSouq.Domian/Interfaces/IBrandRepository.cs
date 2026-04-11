@@ -12,13 +12,15 @@ namespace TechSouq.Domian.Interfaces
 
         Task <int> AddBrand (Brand brand);
 
-        Task<Brand> GetBrand(int BrandId);
+        Task<Brand> GetBrand(int BrandId, bool trackingChanges = true);
 
         Task <bool> UpdateBrand(Brand brand);
 
         Task <bool> DeleteBrand (int brandId);
 
-       
+        Task<bool> IsBrandExists(int CartItemId);
+
+
 
     }
 }

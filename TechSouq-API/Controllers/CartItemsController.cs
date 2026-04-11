@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TechSouq.API.Extensions;
 using TechSouq.Application;
 using TechSouq.Application.Dtos;
 using TechSouq.Application.Services;
 
 namespace TechSouq.API.Controllers
 {
+    [Authorize(Roles = "Customer")]
     [Route("api/[controller]")]
     [ApiController]
     public class CartItemsController : ControllerBase
@@ -18,18 +21,37 @@ namespace TechSouq.API.Controllers
             _CartItemService = cartItemService;
         }
 
+        //[HttpPost("AddItem")]
+        //public async Task<IActionResult> AddItemToCart(CartItemDto CartItem)
+        //{
+        //    var userId = User.GetUserId();
+        //    // 🔒 بنبعت رقم اليوزر للسيرفيس عشان هي اللي تجيب الـ CartId بتاعته من الداتابيز وتضيف فيها
+        //    var result = await _CartItemService.AddCartItem(userId, CartItem);
+        //    return this.ToHttpResponse(result);
+        //}
+
+        //[HttpPut("UpdateItem")]
+        //public async Task<IActionResult> UpdateCartItem(CartItemDto cartItem)
+        //{
+        //    var userId = User.GetUserId();
+        //    var result = await _CartItemService.UpdateCartItem(userId, cartItem);
+        //    return this.ToHttpResponse(result);
+        //}
+
+        //[HttpDelete("RemoveItem")]
+        //public async Task<IActionResult> RemoveCartItem(int productId)
+        //{
+        //    var userId = User.GetUserId();
+        //    var result = await _CartItemService.RemoveCartItem(userId, productId);
+        //    return this.ToHttpResponse(result);
+        //}
+
         [HttpPost("Creat")]
         public async Task<IActionResult> CreateItemCart(CartItemDto CartItem)
         {
             var result = await _CartItemService.AddCartItem(CartItem);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
         [HttpGet("Get")]
@@ -37,13 +59,7 @@ namespace TechSouq.API.Controllers
         {
             var result = await _CartItemService.GetCartItems(CartId);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
         [HttpPut("Update")]
@@ -51,27 +67,15 @@ namespace TechSouq.API.Controllers
         {
             var result = await _CartItemService.UpdateCartItems(cartItems);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteCartItems(int CartId)
         {
-            var result = await _CartItemService.DeleteCartItems(CartId);
+            var result = await _CartItemService.DeleteCartItem(CartId);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
     }
 }

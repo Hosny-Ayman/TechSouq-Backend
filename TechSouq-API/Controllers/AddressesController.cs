@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TechSouq.Application;
+using TechSouq.API.Extensions;
 using TechSouq.Application.Dtos;
 using TechSouq.Application.Services;
 
 namespace TechSouq.API.Controllers
 {
+    [Authorize(Roles = "Customer,Admin")] 
     [Route("api/[controller]")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ApiController]
     public class AddressesController : ControllerBase
     {
@@ -21,73 +19,36 @@ namespace TechSouq.API.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task <IActionResult> AddAddress(AddressDto address)
+        public async Task<IActionResult> AddAddress(AddressDto address)
         {
+            address.UserId = User.GetUserId();
             var result = await _addressService.AddAddress(address);
-
-            if(result.IsSuccess)
-            {
-                return Ok(result);
-            }
-
-            return result.Status switch
-            {
-               
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-
-
-            };
-
-           
+            return this.ToHttpResponse(result);
         }
 
-        [HttpGet("Get")]
-        public async Task <IActionResult> GetAddresses(int UserId)
+        [HttpGet("MyAddresses")] 
+        public async Task<IActionResult> GetMyAddresses()
         {
-            var result = await  _addressService.GetAddresses(UserId);
-
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-            };
+            var userId = User.GetUserId();
+            var result = await _addressService.GetAddresses(userId);
+            return this.ToHttpResponse(result);
         }
-
 
         [HttpPut("Update")]
         public async Task<IActionResult> UpdateAddress(AddressDto address)
         {
-            var result = await _addressService.UpdateAdress(address);
-
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-
-            };
+            address.UserId = User.GetUserId();
+            var result = await _addressService.UpdateAddress(address);
+            return this.ToHttpResponse(result);
         }
+
         [HttpDelete("Delete")]
-        public async Task <IActionResult> DeleteAddress(int AddressId)
+        public async Task<IActionResult> DeleteAddress(int AddressId)
         {
-            var result = await _addressService.DeleteAddress(AddressId);
-
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-
-            };
+            var userId = User.GetUserId();
+           
+            var result = await _addressService.DeleteAddress(AddressId, userId);
+            return this.ToHttpResponse(result);
         }
-
-
-
     }
 }

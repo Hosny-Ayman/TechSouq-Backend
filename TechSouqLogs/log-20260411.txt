@@ -1,0 +1,85 @@
+2026-04-11 15:45:25.626 +02:00 [INF] Program Work Good
+2026-04-11 15:47:29.357 +02:00 [ERR] An unexpected error occurred in the application.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX12741: JWT must have three segments (JWS) or five segments (JWE).
+   at System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.ValidateToken(String token, TokenValidationParameters validationParameters, SecurityToken& validatedToken)
+   at TechSouq.Application.Services.TokenService.GetPrincipalFromExpiredToken(String token) in D:\Programming 2026\TechSouq Project\TechSouq-Business-Layer\Services\TokenService.cs:line 73
+   at TechSouq.Application.Services.AuthService.RefreshToken(TokenDto tokenDto) in D:\Programming 2026\TechSouq Project\TechSouq-Business-Layer\Services\AuthService.cs:line 70
+   at TechSouq.API.Controllers.AuthController.RefreshToken(TokenDto tokenDto) in D:\Programming 2026\TechSouq Project\TechSouq-API\Controllers\AuthController.cs:line 48
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in D:\Programming 2026\TechSouq Project\TechSouq-API\Middlewares\ExceptionHandlingMiddleware.cs:line 23
+2026-04-11 15:50:49.939 +02:00 [INF] Program Work Good
+2026-04-11 15:51:07.217 +02:00 [ERR] An unexpected error occurred in the application.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX12741: JWT must have three segments (JWS) or five segments (JWE).
+   at System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.ValidateToken(String token, TokenValidationParameters validationParameters, SecurityToken& validatedToken)
+   at TechSouq.Application.Services.TokenService.GetPrincipalFromExpiredToken(String token) in D:\Programming 2026\TechSouq Project\TechSouq-Business-Layer\Services\TokenService.cs:line 73
+   at TechSouq.Application.Services.AuthService.RefreshToken(TokenDto tokenDto) in D:\Programming 2026\TechSouq Project\TechSouq-Business-Layer\Services\AuthService.cs:line 70
+   at TechSouq.API.Controllers.AuthController.RefreshToken(TokenDto tokenDto) in D:\Programming 2026\TechSouq Project\TechSouq-API\Controllers\AuthController.cs:line 48
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at ExceptionHandlingMiddleware.InvokeAsync(HttpContext context) in D:\Programming 2026\TechSouq Project\TechSouq-API\Middlewares\ExceptionHandlingMiddleware.cs:line 23
+2026-04-11 15:53:03.571 +02:00 [INF] Program Work Good
+2026-04-11 15:53:24.508 +02:00 [INF] Result Id: 1 Get Successfully
+2026-04-11 15:54:19.198 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["Password should not be less than 8 characters."]
+2026-04-11 15:54:39.818 +02:00 [INF] User logged in successfully: Hosny@gmail.com
+2026-04-11 16:22:36.673 +02:00 [INF] Program Work Good
+2026-04-11 16:23:49.603 +02:00 [INF] User logged in successfully: Hosny@gmail.com
+2026-04-11 16:32:23.943 +02:00 [INF] Program Work Good
+2026-04-11 16:32:57.045 +02:00 [INF] User logged in successfully: Hosny@gmail.com
+2026-04-11 16:34:37.335 +02:00 [INF] User 3 retrieved Addresses successfully.
+2026-04-11 16:34:45.561 +02:00 [INF] User 1 retrieved Addresses successfully.
+2026-04-11 16:35:35.530 +02:00 [INF] Result Id: 6 Get Successfully
+2026-04-11 16:58:52.928 +02:00 [INF] Program Work Good
+2026-04-11 16:59:51.478 +02:00 [INF] Program Work Good
+2026-04-11 17:01:27.461 +02:00 [INF] Program Work Good
+2026-04-11 17:02:49.963 +02:00 [INF] User logged in successfully: Hosny@gmail.com
+2026-04-11 17:19:12.914 +02:00 [INF] Program Work Good
+2026-04-11 17:20:02.770 +02:00 [INF] User logged in successfully: Hosny@gmail.com
+2026-04-11 17:20:38.102 +02:00 [INF] User LogOut Successfully with id: 6
+2026-04-11 18:06:55.267 +02:00 [INF] Program Work Good
+2026-04-11 18:07:11.388 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:07:16.556 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:07:17.178 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:07:39.889 +02:00 [INF] Program Work Good
+2026-04-11 18:07:52.521 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:07:54.297 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:07:54.774 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:18:37.540 +02:00 [INF] Program Work Good
+2026-04-11 18:18:48.832 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:18:51.534 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:18:52.004 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:19:12.666 +02:00 [INF] Program Work Good
+2026-04-11 18:19:18.666 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:19:21.323 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:19:21.793 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:36:41.744 +02:00 [INF] Program Work Good
+2026-04-11 18:38:17.111 +02:00 [WRN] Automatic Validation Failed at Endpoint: /api/Auth/Login. Errors: ["A valid Email is required.","Password should not be less than 8 characters."]
+2026-04-11 18:38:48.208 +02:00 [WRN] Login failed for email: ali.ahmed@student.com.
+2026-04-11 18:38:48.244 +02:00 [WRN] Login failed for email: ali.ahmed@student.com.
+2026-04-11 18:40:06.335 +02:00 [WRN] Login failed for email: ali.ahmed@student.com.
+2026-04-11 18:40:06.349 +02:00 [WRN] Login failed for email: ali.ahmed@student.com.
+2026-04-11 18:40:06.359 +02:00 [WRN] Login failed for email: ali.ahmed@student.com.

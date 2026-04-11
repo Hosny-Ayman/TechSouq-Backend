@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
@@ -25,14 +26,9 @@ namespace TechSouq.Infrastructure.Repositories
             _appDbContext.CartItems.Add(cartItem);
 
            
-                await _appDbContext.SaveChangesAsync();
-            
-                return -1;
-            
+               var save =  await _appDbContext.SaveChangesAsync();
 
-           
-
-            return cartItem.Id;
+            return save > 0 ? cartItem.Id : 0;
         }
 
         public async Task<bool> DeleteCartItem(int CartItemId)
@@ -40,16 +36,25 @@ namespace TechSouq.Infrastructure.Repositories
             return await _appDbContext.CartItems.Where(x => x.Id == CartItemId).ExecuteDeleteAsync() > 0;
         }
 
-        public async Task<List<CartItem>> GetCartItems(int CartItemId)
+        public async Task<List<CartItem>> GetCartItems(int CartItemId, bool trackingChanges = true)
         {
-            return await _appDbContext.CartItems.AsNoTracking().Where(x => x.Id == CartItemId).ToListAsync();
+            var query = _appDbContext.CartItems.AsQueryable();
+            if(!trackingChanges)
+                query = query.AsNoTracking();
+
+            return await query.Where(x => x.Id == CartItemId).ToListAsync();
         }
 
         public async Task<bool> UpdateCartItems(List<CartItem> cartItem)
         {
-            _appDbContext.CartItems.UpdateRange(cartItem);
+           
 
             return await _appDbContext.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> IsCartItemExists(int CartItemId)
+        {
+            return await _appDbContext.CartItems.AnyAsync(x => x.Id == CartItemId);
         }
     }
 }

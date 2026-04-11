@@ -23,8 +23,8 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<int> AddCategorie(Categorie categorie)
         {
             _appDbContext.Add(categorie);
-            await _appDbContext.SaveChangesAsync();
-            return categorie.Id;
+           var save = await _appDbContext.SaveChangesAsync();
+            return save > 0 ? categorie.Id : 0;
         }
 
         public async Task<bool> DeleteCategorie(int categorieId)
@@ -32,16 +32,25 @@ namespace TechSouq.Infrastructure.Repositories
            return await _appDbContext.Categories.Where(x=>x.Id == categorieId).ExecuteDeleteAsync() > 0;
         }
 
-        public async Task<Categorie> GetCategorie(int categorieId)
+        public async Task<Categorie> GetCategorie(int categorieId, bool trackingChanges = true)
         {
-            return await _appDbContext.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == categorieId); 
+            var query = _appDbContext.Categories.AsQueryable();
+
+            if (!trackingChanges)
+                query = query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(x => x.Id == categorieId); 
         }
 
         public async Task<bool> UpdateCategorie(Categorie categorie)
         {
-            _appDbContext.Update(categorie);
 
-            return await _appDbContext.SaveChangesAsync() > 0;
+           return await _appDbContext.SaveChangesAsync()>0;
+        }
+
+        public async Task<bool> IsCategorieExists(int CategorieId)
+        {
+            return await _appDbContext.Categories.AnyAsync(x => x.Id == CategorieId);
         }
     }
 }

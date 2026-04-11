@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.NetworkInformation;
+using TechSouq.API.Extensions;
 using TechSouq.Application;
 using TechSouq.Application.Dtos;
 using TechSouq.Application.Services;
 
 namespace TechSouq.API.Controllers
 {
+    [Authorize(Roles = "Customer")]
     [Route("api/[controller]")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -24,33 +27,27 @@ namespace TechSouq.API.Controllers
 
 
         [HttpPost("Create")]
-        public async Task<IActionResult> CreateCart(CartDto Cart)
+        public async Task<IActionResult> GetMyCart()
         {
-            var result = await _CartServices.AddCart(Cart);
-
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-
-            };
+            var userId = User.GetUserId();
+            var result = await _CartServices.GetCart(userId);
+            return this.ToHttpResponse(result);
         }
+
+        //[HttpDelete("ClearMyCart")]
+        //public async Task<IActionResult> ClearCart()
+        //{
+        //    var userId = User.GetUserId();
+        //    var result = await _CartServices.ClearCartByUserId(userId);
+        //    return this.ToHttpResponse(result);
+        //}
 
         [HttpGet("Get")]
         public async Task<IActionResult> GetCart(int CartId)
         {
             var result = await _CartServices.GetCart(CartId);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-
-            };
+            return this.ToHttpResponse(result);
         }
 
         [HttpPut("Update")]
@@ -58,13 +55,7 @@ namespace TechSouq.API.Controllers
         {
             var result = await _CartServices.UpdateCart(Cart);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
 
@@ -73,13 +64,7 @@ namespace TechSouq.API.Controllers
         {
             var result = await _CartServices.DeleteCart(CartId);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
     }

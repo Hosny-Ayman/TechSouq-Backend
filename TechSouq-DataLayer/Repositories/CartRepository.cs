@@ -24,9 +24,9 @@ namespace TechSouq.Infrastructure.Repositories
         {
            _appDbContext.Carts.Add(Cart);
 
-           await _appDbContext.SaveChangesAsync();
+           var save = await _appDbContext.SaveChangesAsync();
 
-           return Cart.Id;
+            return save > 0 ? Cart.Id : 0;
         }
 
         public async Task<bool> DeleteCart(int CartId)
@@ -34,16 +34,26 @@ namespace TechSouq.Infrastructure.Repositories
            return await _appDbContext.Carts.Where(x => x.Id == CartId).ExecuteDeleteAsync() > 0;
         }
 
-        public async Task<Cart> GetCart(int CartId)
+        public async Task<Cart> GetCart(int CartId, bool trackingChanges = true)
         {
-            return await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.Id == CartId);
+            var query = _appDbContext.Carts.AsQueryable();
+
+            if (!trackingChanges)
+                query = query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(x => x.Id == CartId);
         }
 
         public async Task<bool> UpdateCart(Cart Cart)
         {
-            _appDbContext.Carts.Update(Cart);
+           
 
             return await _appDbContext.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> IsCartExists(int CartId)
+        {
+            return await _appDbContext.Carts.AnyAsync(x => x.Id == CartId);
         }
     }
 }

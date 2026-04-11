@@ -1,21 +1,22 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json.Serialization;
+using TechSouq.API;
+using TechSouq.API.Extensions;
+using TechSouq.API.Policies;
 using TechSouq.Application;
-using TechSouq.Application.Services;
-using TechSouq.Application.Validators;
-using TechSouq.DataLayer.Repositories;
-using TechSouq.Domain.Entities;
-using TechSouq.Domain.Interfaces;
-using TechSouq.Domian.Interfaces;
+using TechSouq.Application.Extensions;
 using TechSouq.Infrastructure.Data;
-using TechSouq.Infrastructure.Repositories;
-
-
+using TechSouq.Infrastructure.Extensions;
 
 namespace TechSouq_API
 {
@@ -23,7 +24,6 @@ namespace TechSouq_API
     {
         public static void Main(string[] args)
         {
-
             Serilog.Debugging.SelfLog.Enable(msg => System.Diagnostics.Debug.WriteLine(msg));
 
             Log.Logger = new LoggerConfiguration()
@@ -52,62 +52,103 @@ namespace TechSouq_API
 
                 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(ConnectionString));
 
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            RoleClaimType = ClaimTypes.Role
+        };
+    });
+
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("OwnerOnly", policy =>
+                        policy.Requirements.Add(new ResourceOwnerRequirement()));
+                });
+
+                builder.Services.AddSingleton<IAuthorizationHandler, ResourceOwnerHandler>();
+
                 builder.Services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
                 .ConfigureApiBehaviorOptions(options =>
                 {
                     options.InvalidModelStateResponseFactory = actionContext =>
                     {
-
                         var errors = actionContext.ModelState
                             .Where(e => e.Value.Errors.Count > 0)
                             .SelectMany(x => x.Value.Errors)
                             .Select(x => x.ErrorMessage)
                             .ToList();
 
-
                         var logger = actionContext.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
-                       
                         var path = actionContext.HttpContext.Request.Path;
                         logger.LogWarning("Automatic Validation Failed at Endpoint: {Path}. Errors: {@Errors}", path, errors);
 
                         var operationResult = OperationResult<object>.BadRequest("Validation Error", errors);
 
-                       
                         return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(operationResult);
                     };
                 });
 
-                builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-                builder.Services.AddScoped<AddressService>();
 
-                builder.Services.AddScoped<IBrandRepository, BrandRepository>();
-                builder.Services.AddScoped<BrandService>();
 
-                builder.Services.AddScoped<ICartRepository, CartRepository>();
-                builder.Services.AddScoped<CartService>();
+                builder.Services.AddInfrastructureServices();
 
-                builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
-                builder.Services.AddScoped<CartItemService>();
+                builder.Services.AddApplicationServices();
 
                 // Add services to the container.
-
 
                 builder.Services.AddFluentValidationAutoValidation();
                 //builder.Services.AddFluentValidationClientsideAdapters();
 
-                builder.Services.AddValidatorsFromAssemblyContaining<AddressValidator>();
-                builder.Services.AddValidatorsFromAssemblyContaining<brandValidator>();
-                builder.Services.AddValidatorsFromAssemblyContaining<CartValidator>();
+                builder.Services.AddCustomRateLimiting();
 
                 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 builder.Services.AddEndpointsApiExplorer();
-                builder.Services.AddSwaggerGen();
+                builder.Services.AddSwaggerGen(options =>
+                {
+                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "Bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Description = "دخل التوكن بتاعك هنا على طول من غير كلمة Bearer"
+                    });
 
-                builder.Services.AddAutoMapper(typeof(TechSouq.Application.Mappings.MappingProfiles));
+                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+                });
+
+                //builder.Services.AddAutoMapper(typeof(TechSouq.Application.Mappings.MappingProfiles));
+
+                builder.Services.AddCorsPolicy(builder.Configuration);
 
                 var app = builder.Build();
+
+                app.UseMiddleware<ExceptionHandlingMiddleware>();
 
                 // Configure the HTTP request pipeline.
                 if (app.Environment.IsDevelopment())
@@ -118,8 +159,13 @@ namespace TechSouq_API
 
                 app.UseHttpsRedirection();
 
+                app.UseCors("TechSouqCorsPolicy");
+
+                app.UseAuthentication();
+
                 app.UseAuthorization();
 
+                app.UseRateLimiter();
 
                 app.MapControllers();
 
@@ -133,7 +179,6 @@ namespace TechSouq_API
             {
                 Log.CloseAndFlush();
             }
-           
         }
     }
 }

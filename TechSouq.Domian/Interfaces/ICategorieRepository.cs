@@ -12,10 +12,12 @@ namespace TechSouq.Domain.Interfaces
     {
         Task<int> AddCategorie(Categorie categorie);
 
-        Task<Categorie> GetCategorie(int categorieId);
+        Task<Categorie> GetCategorie(int categorieId, bool trackingChanges = true);
 
         Task<bool> UpdateCategorie(Categorie categorie);
 
         Task<bool> DeleteCategorie(int categorieId);
+
+        Task<bool> IsCategorieExists(int CategorieId);
     }
 }
