@@ -3,6 +3,9 @@ using TechSouq.DataLayer.Repositories;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Domian.Interfaces;
 using TechSouq.Infrastructure.Repositories;
+using TechSouq.Application.Queries;
+using TechSouq.Infrastructure.Queries;
+
 
 namespace TechSouq.Infrastructure.Extensions
 {
@@ -23,6 +26,7 @@ namespace TechSouq.Infrastructure.Extensions
             services.AddScoped<IProductImageRepository, ProductImageRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IProductQueryService, ProductQueryService>();
 
             return services;
         }

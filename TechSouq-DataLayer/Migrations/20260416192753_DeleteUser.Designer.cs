@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TechSouq.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TechSouq.Infrastructure.Data;
 namespace TechSouq_DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416192753_DeleteUser")]
+    partial class DeleteUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,11 +114,9 @@ namespace TechSouq_DataLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("CartId");
 
-                    b.HasIndex("CartId", "ProductId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Cart_Product_Unique");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("CartItems", (string)null);
                 });
@@ -253,7 +254,7 @@ namespace TechSouq_DataLayer.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("NVARCHAR(MAX)");
+                        .HasColumnType("NVARCHAR(150)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("DECIMAL(10,2)");
@@ -261,11 +262,16 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<int>("Stock")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BrandId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Products", (string)null);
                 });
@@ -339,9 +345,6 @@ namespace TechSouq_DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.HasIndex("RoleId");
 
@@ -449,9 +452,17 @@ namespace TechSouq_DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("TechSouq.Domain.Entities.User", "User")
+                        .WithMany("Products")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Brand");
 
                     b.Navigation("Categorie");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.ProductImage", b =>
@@ -526,6 +537,8 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("Addresses");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("Products");
 
                     b.Navigation("cart")
                         .IsRequired();

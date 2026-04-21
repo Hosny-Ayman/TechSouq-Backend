@@ -2,9 +2,8 @@
 {
     public static class CorsRegistration
     {
-        public static IServiceCollection AddCorsPolicy(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
         {
-
             var allowedOrigins = configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
             services.AddCors(options =>
             {
@@ -12,23 +11,16 @@
                 {
                     if (allowedOrigins != null && allowedOrigins.Length > 0)
                     {
-                        builder.WithOrigins(allowedOrigins)
+                        builder.WithOrigins(allowedOrigins) 
                                .AllowAnyMethod()
-                               .AllowAnyHeader();
+                               .AllowAnyHeader()
+                               .AllowCredentials(); 
                     }
-                    //else
-                    //{
-                   
-                    //    builder.AllowAnyOrigin()
-                    //           .AllowAnyMethod()
-                    //           .AllowAnyHeader();
-                    //}
+                    
                 });
             });
 
             return services;
         }
     }
-
 }
-

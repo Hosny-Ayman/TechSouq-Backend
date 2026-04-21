@@ -19,14 +19,13 @@ namespace TechSouq.Application.Validators
             RuleFor(x => x.Stock)
                 .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative");
 
-            RuleFor(x => x.UserId)
-                .GreaterThan(0).WithMessage("UserId should be valid");
+           
 
-            RuleFor(x => x.CategoryId)
-                .GreaterThan(0).WithMessage("CategoryId should be valid");
+            RuleFor(x => x.CategoryName)
+                .NotEmpty().WithMessage("CategoryName should be Not Empty");
 
-            RuleFor(x => x.BrandId)
-                .GreaterThan(0).WithMessage("BrandId should be valid");
+            RuleFor(x => x.BrandName)
+                 .NotEmpty().WithMessage("BrandName should be Not Empty");
         }
     }
 }

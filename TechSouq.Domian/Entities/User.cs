@@ -25,7 +25,6 @@ namespace TechSouq.Domain.Entities
 
         public ICollection<Order> Orders { get;set; }
 
-        public ICollection<Product> Products { get; set; }
     }
   
     }

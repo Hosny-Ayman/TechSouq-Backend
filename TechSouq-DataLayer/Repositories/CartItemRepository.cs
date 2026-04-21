@@ -31,9 +31,9 @@ namespace TechSouq.Infrastructure.Repositories
             return save > 0 ? cartItem.Id : 0;
         }
 
-        public async Task<bool> DeleteCartItem(int CartItemId)
+        public async Task<bool> RemoveCartItem(int cartId, int productId)
         {
-            return await _appDbContext.CartItems.Where(x => x.Id == CartItemId).ExecuteDeleteAsync() > 0;
+            return await _appDbContext.CartItems.Where(x => x.CartId == cartId && x.ProductId == productId).ExecuteDeleteAsync() > 0;
         }
 
         public async Task<List<CartItem>> GetCartItems(int CartItemId, bool trackingChanges = true)
@@ -45,9 +45,10 @@ namespace TechSouq.Infrastructure.Repositories
             return await query.Where(x => x.Id == CartItemId).ToListAsync();
         }
 
-        public async Task<bool> UpdateCartItems(List<CartItem> cartItem)
+        public async Task<bool> UpdateCartItems(int userId,CartItem cartItem)
         {
            
+
 
             return await _appDbContext.SaveChangesAsync() > 0;
         }
@@ -55,6 +56,44 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<bool> IsCartItemExists(int CartItemId)
         {
             return await _appDbContext.CartItems.AnyAsync(x => x.Id == CartItemId);
+        }
+
+        public async Task<bool> AddCartAndCartItems(CartItem cartItem, Cart Cart)
+        {
+
+            cartItem.Cart = Cart;
+
+            await _appDbContext.Carts.AddAsync(Cart);
+
+            await _appDbContext.CartItems.AddAsync(cartItem);
+
+
+            return await _appDbContext.SaveChangesAsync() > 0;
+
+        }
+
+        public async Task<bool> AddOrUpdateCartItemAsync(int CartId, int ProductId)
+        {
+
+            var IscartitemExists = await _appDbContext.CartItems.FirstOrDefaultAsync(x => x.CartId == CartId && x.ProductId == ProductId);
+
+            if(IscartitemExists != null)
+            {
+                IscartitemExists.Quantity += 1;
+            }
+            else
+            {
+
+                CartItem cartItem = new CartItem();
+                cartItem.CartId = CartId;
+                cartItem.ProductId = ProductId;
+
+                _appDbContext.CartItems.Add(cartItem);
+            }
+
+
+            return await _appDbContext.SaveChangesAsync() > 0;
+
         }
     }
 }

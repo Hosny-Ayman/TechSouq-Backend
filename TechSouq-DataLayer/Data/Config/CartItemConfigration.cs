@@ -23,6 +23,8 @@ namespace TechSouq.Infrastructure.Data.Config
             builder.HasOne(x => x.Cart).WithMany(x => x.CartItems).HasForeignKey(x => x.CartId).OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Product).WithMany(x => x.CartItems).HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(x => new { x.CartId, x.ProductId }).IsUnique().HasDatabaseName("IX_Cart_Product_Unique"); ;
         }
 
     }

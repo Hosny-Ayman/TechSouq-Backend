@@ -21,6 +21,7 @@ namespace TechSouq.Infrastructure.Data.Config
             builder.Property(x => x.Name).HasColumnType("NVARCHAR(50)").IsRequired();
 
             builder.Property(x => x.Email).HasColumnType("NVARCHAR(255)").IsRequired();
+            builder.HasIndex(x=>x.Email).IsUnique();
 
             builder.Property(x => x.Password).HasColumnType("NVARCHAR(255)").IsRequired();
 

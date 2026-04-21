@@ -35,7 +35,16 @@ namespace TechSouq.API.Controllers
 
             return this.ToHttpResponse(result);
         }
-        
+
+        [AllowAnonymous]
+        [HttpGet("GetProductsPaged")]
+        public async Task<IActionResult> GetProductsPaged(int PageNumber, int PageSize, string? searchTerm = null)
+        {
+            var result = await _productService.GetProductsPaged(PageNumber, PageSize, searchTerm);
+
+            return this.ToHttpResponse(result);
+        }
+
         [HttpPut]
         public async Task<IActionResult> UpdateProduct(ProductDto productDto)
         {

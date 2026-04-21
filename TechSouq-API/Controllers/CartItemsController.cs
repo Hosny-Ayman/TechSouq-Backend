@@ -21,61 +21,63 @@ namespace TechSouq.API.Controllers
             _CartItemService = cartItemService;
         }
 
-        //[HttpPost("AddItem")]
-        //public async Task<IActionResult> AddItemToCart(CartItemDto CartItem)
-        //{
-        //    var userId = User.GetUserId();
-        //    // 🔒 بنبعت رقم اليوزر للسيرفيس عشان هي اللي تجيب الـ CartId بتاعته من الداتابيز وتضيف فيها
-        //    var result = await _CartItemService.AddCartItem(userId, CartItem);
-        //    return this.ToHttpResponse(result);
-        //}
-
-        //[HttpPut("UpdateItem")]
-        //public async Task<IActionResult> UpdateCartItem(CartItemDto cartItem)
-        //{
-        //    var userId = User.GetUserId();
-        //    var result = await _CartItemService.UpdateCartItem(userId, cartItem);
-        //    return this.ToHttpResponse(result);
-        //}
-
-        //[HttpDelete("RemoveItem")]
-        //public async Task<IActionResult> RemoveCartItem(int productId)
-        //{
-        //    var userId = User.GetUserId();
-        //    var result = await _CartItemService.RemoveCartItem(userId, productId);
-        //    return this.ToHttpResponse(result);
-        //}
-
-        [HttpPost("Creat")]
-        public async Task<IActionResult> CreateItemCart(CartItemDto CartItem)
+        [HttpPost("AddItem")]
+        public async Task<IActionResult> AddItemToCart(CartItemDto CartItem)
         {
-            var result = await _CartItemService.AddCartItem(CartItem);
+            var userId = User.GetUserId();
+            var result = await _CartItemService.AddCartItem(userId, CartItem);
+            return this.ToHttpResponse(result);
+        }
 
+        [HttpPut("UpdateItem")]
+        public async Task<IActionResult> UpdateCartItem(CartItemDto cartItem)
+        {
+            var userId = User.GetUserId();
+            var result = await _CartItemService.UpdateCartItem(userId, cartItem);
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpDelete("RemoveItem")]
+        public async Task<IActionResult> RemoveCartItem(int productId)
+        {
+            var userId = User.GetUserId();
+            var result = await _CartItemService.RemoveCartItem(userId, productId);
             return this.ToHttpResponse(result);
         }
 
         [HttpGet("Get")]
-        public async Task<IActionResult> GetCartItems(int CartId)
+        public async Task<IActionResult> GetCartItems()
         {
-            var result = await _CartItemService.GetCartItems(CartId);
+            var userId = User.GetUserId();
+            var result = await _CartItemService.GetCartItems(userId);
 
             return this.ToHttpResponse(result);
         }
 
-        [HttpPut("Update")]
-        public async Task<IActionResult> UpdateCartItems(List<CartItemDto> cartItems)
-        {
-            var result = await _CartItemService.UpdateCartItems(cartItems);
+        //[HttpPost("Creat")]
+        //public async Task<IActionResult> CreateItemCart(CartItemDto CartItem)
+        //{
+        //    var result = await _CartItemService.AddCartItem(CartItem);
 
-            return this.ToHttpResponse(result);
-        }
+        //    return this.ToHttpResponse(result);
+        //}
 
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteCartItems(int CartId)
-        {
-            var result = await _CartItemService.DeleteCartItem(CartId);
 
-            return this.ToHttpResponse(result);
-        }
+
+        //[HttpPut("Update")]
+        //public async Task<IActionResult> UpdateCartItems(List<CartItemDto> cartItems)
+        //{
+        //    var result = await _CartItemService.UpdateCartItems(cartItems);
+
+        //    return this.ToHttpResponse(result);
+        //}
+
+        //[HttpDelete("Delete")]
+        //public async Task<IActionResult> DeleteCartItems(int CartId)
+        //{
+        //    var result = await _CartItemService.DeleteCartItem(CartId);
+
+        //    return this.ToHttpResponse(result);
+        //}
     }
 }

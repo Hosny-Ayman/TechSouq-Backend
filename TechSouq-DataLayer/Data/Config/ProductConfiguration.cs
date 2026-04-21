@@ -20,7 +20,7 @@ namespace TechSouq.Infrastructure.Data.Config
             builder.HasKey(x => x.Id);
 
 
-            builder.Property(x => x.Name).HasColumnType("NVARCHAR(150)").IsRequired();
+            builder.Property(x => x.Name).HasColumnType("NVARCHAR(MAX)").IsRequired();
 
             builder.Property(x => x.Description).HasColumnType("NVARCHAR(MAX)").IsRequired();
 
@@ -28,7 +28,6 @@ namespace TechSouq.Infrastructure.Data.Config
 
             builder.Property(x => x.Price).HasColumnType("DECIMAL(10,2)").IsRequired();
 
-            builder.HasOne(X => X.User).WithMany(X => X.Products).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(X => X.Categorie).WithMany(X => X.Products).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
 

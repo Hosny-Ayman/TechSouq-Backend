@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TechSouq-Business-Layer\TechSouq.Application.csproj" />
     <ProjectReference Include="..\TechSouq.Domian\TechSouq.Domain.csproj" />
-    <ProjectReference Include="..\TechSouq.Domian\TechSouq.Domian.csproj" />
   </ItemGroup>
 
 </Project>

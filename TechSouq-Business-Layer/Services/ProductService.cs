@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Helper;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
 
@@ -13,12 +15,15 @@ namespace TechSouq.Application.Services
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<ProductService> _logger;
+        private readonly IProductQueryService _productQueryService;
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, ILogger<ProductService> logger)
+        public ProductService(IProductRepository productRepository, IMapper mapper, ILogger<ProductService> logger, IProductQueryService productQueryService)
         {
             _productRepository = productRepository;
             _mapper = mapper;
             _logger = logger;
+            _productQueryService = productQueryService;
+           
         }
 
         public async Task<OperationResult<int>> AddProduct(ProductDto productDto)
@@ -44,7 +49,7 @@ namespace TechSouq.Application.Services
                 return OperationResult<ProductDto>.BadRequest("Invalid data", new List<string> { $"Invalid data result Id: {productId}" });
             }
 
-            var product = await _productRepository.GetProduct(productId);
+            var product = await _productQueryService.GetProductById(productId);
 
             if (product == null)
             {
@@ -54,8 +59,34 @@ namespace TechSouq.Application.Services
 
             var productDto = _mapper.Map<ProductDto>(product);
 
+
+
             _logger.LogInformation("Result Id: {Id} Get Successfully", productId);
             return OperationResult<ProductDto>.Success(productDto);
+        }
+
+        public async Task<OperationResult<PagedResponse<ProductDto>>> GetProductsPaged(int PageNumber,int PageSize, string? searchTerm = null)
+        {
+            if (PageNumber <= 0 && PageSize <= 0)
+            {
+                _logger.LogWarning("Invalid data result PageNumber or PageSize under 0 or 0");
+                return OperationResult<PagedResponse<ProductDto>>.BadRequest("Invalid data", new List<string> { "Invalid data result PageNumber or PageSize under 0 or 0" });
+            }
+
+            var product = await _productQueryService.GetProductsPaged(PageNumber, PageSize, searchTerm);
+
+            if (product.Data.Count() == 0 )
+            {
+                _logger.LogWarning("Products Not Found PageNumber: {PageNumber} , PageSize: {PageSize} ", PageNumber, PageSize);
+                return OperationResult<PagedResponse<ProductDto>>.NotFound("Product not found or already deleted.");
+            }
+
+            //var productDto = _mapper.Map<ProductDto>(product);
+
+
+
+            _logger.LogInformation("Result product Get Successfully");
+            return OperationResult<PagedResponse<ProductDto>>.Success(product);
         }
 
         public async Task<OperationResult<bool>> UpdateProduct(ProductDto productDto)

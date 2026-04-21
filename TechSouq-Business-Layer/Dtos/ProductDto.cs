@@ -1,4 +1,6 @@
-﻿namespace TechSouq.Application.Dtos
+﻿using Microsoft.Extensions.Hosting;
+
+namespace TechSouq.Application.Dtos
 {
     public class ProductDto
     {
@@ -9,13 +11,13 @@
         public int Stock { get; set; }
         public decimal Price { get; set; }
 
-        public int UserId { get; set; }
-       
+        public List<string> Images { get; set; }
+        public string FirstImage { get; set; }
 
-        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
         
 
-        public int BrandId { get; set; }
+        public string BrandName { get; set; }
       
     }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
@@ -47,5 +48,7 @@ namespace TechSouq.Infrastructure.Repositories
         {
             return await _appDbContext.Products.AnyAsync(x => x.Id == productId);
         }
+
+       
     }
 }

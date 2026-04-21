@@ -18,5 +18,7 @@ namespace TechSouq.Domain.Interfaces
         Task <bool> DeleteCart(int CartId);
 
         Task<bool> IsCartExists(int CartId);
+
+        Task<int> GetCartIdbyUserId(int userId);
     }
 }

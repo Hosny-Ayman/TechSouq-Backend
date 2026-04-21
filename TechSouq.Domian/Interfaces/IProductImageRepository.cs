@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
 
+
 namespace TechSouq.Domain.Interfaces
 {
     public interface IProductImageRepository

@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.4.0">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36">
   <diagram name="‫الصفحة-1‬" id="KQpOwKGFAeoowrx7mHTR">
-    <mxGraphModel dx="2505" dy="914" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2491" dy="914" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1224,9 +1224,6 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="Y5BK_lig4fTAZVW2gfV6-367" edge="1" parent="1" source="Y5BK_lig4fTAZVW2gfV6-258" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=ERzeroToMany;endFill=0;startArrow=ERmandOne;startFill=0;" target="Y5BK_lig4fTAZVW2gfV6-321">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Y5BK_lig4fTAZVW2gfV6-368" edge="1" parent="1" source="Y5BK_lig4fTAZVW2gfV6-274" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=ERmandOne;endFill=0;startArrow=ERzeroToMany;startFill=0;" target="Y5BK_lig4fTAZVW2gfV6-261">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="Y5BK_lig4fTAZVW2gfV6-375" edge="1" parent="1" source="Y5BK_lig4fTAZVW2gfV6-284" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=ERzeroToMany;endFill=0;startArrow=ERmandOne;startFill=0;" target="Y5BK_lig4fTAZVW2gfV6-274">
