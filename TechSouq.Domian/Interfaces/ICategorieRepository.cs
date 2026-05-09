@@ -19,5 +19,6 @@ namespace TechSouq.Domain.Interfaces
         Task<bool> DeleteCategorie(int categorieId);
 
         Task<bool> IsCategorieExists(int CategorieId);
+
     }
 }

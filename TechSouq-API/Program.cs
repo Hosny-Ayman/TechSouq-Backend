@@ -17,6 +17,8 @@ using TechSouq.Application;
 using TechSouq.Application.Extensions;
 using TechSouq.Infrastructure.Data;
 using TechSouq.Infrastructure.Extensions;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Stripe;
 
 namespace TechSouq_API
 {
@@ -49,6 +51,8 @@ namespace TechSouq_API
                 builder.Host.UseSerilog();
 
                 var ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+
 
                 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(ConnectionString));
 
@@ -111,6 +115,14 @@ namespace TechSouq_API
                         return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(operationResult);
                     };
                 });
+
+                builder.Services.AddStackExchangeRedisCache(options =>
+                {
+                    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+                    options.InstanceName = "TechSouq_"; 
+                });
+
+                StripeConfiguration.ApiKey = builder.Configuration["StripeSettings:SecretKey"];
 
 
 

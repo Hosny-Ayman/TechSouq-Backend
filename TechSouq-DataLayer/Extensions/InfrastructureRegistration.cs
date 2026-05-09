@@ -5,6 +5,7 @@ using TechSouq.Domian.Interfaces;
 using TechSouq.Infrastructure.Repositories;
 using TechSouq.Application.Queries;
 using TechSouq.Infrastructure.Queries;
+using TechSouq.Application.Services;
 
 
 namespace TechSouq.Infrastructure.Extensions
@@ -27,6 +28,11 @@ namespace TechSouq.Infrastructure.Extensions
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IProductQueryService, ProductQueryService>();
+            services.AddScoped<ICategorieQueryService, CategorieQueryService>();
+            services.AddScoped<ICartItemsQueryService, CartItemsQueryService>();
+            services.AddScoped<IProductReview, ProductReviewRepository>();
+            services.AddScoped<IProductReviewQueryService, ProductReviewQueryService>();
+
 
             return services;
         }

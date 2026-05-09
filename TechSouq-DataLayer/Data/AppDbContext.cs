@@ -36,7 +36,16 @@ namespace TechSouq.Infrastructure.Data
         public DbSet<Role> Roles { get; set; }
 
         public DbSet<User> Users { get; set; }
-      
+
+        public DbSet<ProductReview> ProductReview { get; set; }
+
+        public DbSet<Coupons> Coupons { get; set; }
+
+        public DbSet<SystemSettings> SystemSettings { get; set; }
+
+        public DbSet<DeliveryZone> DeliveryZone { get; set; }
+
+        
 
         protected override void OnModelCreating(ModelBuilder modelbuilder)
         {

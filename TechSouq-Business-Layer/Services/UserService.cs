@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BCrypt.Net;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -66,6 +67,7 @@ namespace TechSouq.Application.Services
 
             var existingUser = await _userRepository.GetUser(userDto.Id);
 
+
             if (existingUser == null)
             {
                 _logger.LogWarning("Update User {Id} Failed - Record not found", userDto.Id);
@@ -73,6 +75,22 @@ namespace TechSouq.Application.Services
             }
 
             _mapper.Map(userDto, existingUser);
+
+            if (!string.IsNullOrEmpty( userDto.OldPassword) && !string.IsNullOrEmpty(userDto.NewPassword))
+            {
+                if(!BCrypt.Net.BCrypt.Verify(userDto.OldPassword, existingUser.Password))
+                {
+                    _logger.LogWarning("Update User {Id} Failed - User Enter Invalid OldPassword", userDto.Id);
+                    return OperationResult<bool>.BadRequest("Invalid OldPassword");
+                }
+
+                var hashedpassword = BCrypt.Net.BCrypt.HashPassword(userDto.NewPassword);
+
+                existingUser.Password = hashedpassword;
+            }
+
+           
+
             var result = await _userRepository.UpdateUser(existingUser);
 
             if (!result)

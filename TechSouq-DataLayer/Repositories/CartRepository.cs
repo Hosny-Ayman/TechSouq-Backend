@@ -56,11 +56,11 @@ namespace TechSouq.Infrastructure.Repositories
             return await _appDbContext.Carts.AnyAsync(x => x.Id == CartId);
         }
 
-        public async Task<int> GetCartIdbyUserId(int userId)
+        public async Task<Cart> GetCartIdbyUserId(int userId)
         {
             var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
 
-            return Cart !=null? Cart.UserId : 0;
+            return Cart;
 
             
         }

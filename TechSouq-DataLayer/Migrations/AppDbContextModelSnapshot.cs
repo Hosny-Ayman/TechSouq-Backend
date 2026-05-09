@@ -22,6 +22,42 @@ namespace TechSouq_DataLayer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ProductReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProductReview");
+                });
+
             modelBuilder.Entity("TechSouq.Domain.Entities.Address", b =>
                 {
                     b.Property<int>("Id")
@@ -30,9 +66,24 @@ namespace TechSouq_DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(100)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -42,9 +93,15 @@ namespace TechSouq_DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR(250)");
 
-                    b.Property<int?>("UserId")
-                        .IsRequired()
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("building")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -128,6 +185,10 @@ namespace TechSouq_DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(150)");
@@ -135,6 +196,41 @@ namespace TechSouq_DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("TechSouq.Domain.Entities.Coupons", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsApplicableOnDiscountedItems")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UsageLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Coupons");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.DeliveryMethod", b =>
@@ -157,6 +253,26 @@ namespace TechSouq_DataLayer.Migrations
                     b.ToTable("DeliveryMethods", (string)null);
                 });
 
+            modelBuilder.Entity("TechSouq.Domain.Entities.DeliveryZone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CurrentShippingCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DeliveryZone");
+                });
+
             modelBuilder.Entity("TechSouq.Domain.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -168,7 +284,13 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<int>("AddressId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("DeliveryCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("DeliveryMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DeliveryZoneId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("OrderDate")
@@ -177,6 +299,9 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<string>("ShippingCity")
                         .IsRequired()
                         .HasColumnType("Nvarchar(100)");
+
+                    b.Property<string>("ShippingGovernorate")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShippingStreet")
                         .IsRequired()
@@ -198,6 +323,8 @@ namespace TechSouq_DataLayer.Migrations
 
                     b.HasIndex("DeliveryMethodId")
                         .IsUnique();
+
+                    b.HasIndex("DeliveryZoneId");
 
                     b.HasIndex("UserId");
 
@@ -241,6 +368,9 @@ namespace TechSouq_DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
 
@@ -251,6 +381,15 @@ namespace TechSouq_DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR(MAX)");
 
+                    b.Property<DateTime?>("DiscountEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DiscountStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsFreeShipping")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(MAX)");
@@ -258,8 +397,14 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("DECIMAL(10,2)");
 
+                    b.Property<decimal?>("PriceAfterDiscount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("Stock")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalReviews")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -309,6 +454,31 @@ namespace TechSouq_DataLayer.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("TechSouq.Domain.Entities.SystemSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SettingKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SettingValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemSettings");
+                });
+
             modelBuilder.Entity("TechSouq.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -321,7 +491,7 @@ namespace TechSouq_DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR(255)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(50)");
 
@@ -338,6 +508,10 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SecondName")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR(50)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -346,6 +520,25 @@ namespace TechSouq_DataLayer.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("ProductReview", b =>
+                {
+                    b.HasOne("TechSouq.Domain.Entities.Product", "Product")
+                        .WithMany("ProductReview")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TechSouq.Domain.Entities.User", "User")
+                        .WithMany("ProductReview")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Address", b =>
@@ -403,6 +596,10 @@ namespace TechSouq_DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("TechSouq.Domain.Entities.DeliveryZone", "DeliveryZone")
+                        .WithMany("Order")
+                        .HasForeignKey("DeliveryZoneId");
+
                     b.HasOne("TechSouq.Domain.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
@@ -412,6 +609,8 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("Address");
 
                     b.Navigation("DeliveryMethod");
+
+                    b.Navigation("DeliveryZone");
 
                     b.Navigation("User");
                 });
@@ -502,6 +701,11 @@ namespace TechSouq_DataLayer.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TechSouq.Domain.Entities.DeliveryZone", b =>
+                {
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("TechSouq.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
@@ -514,6 +718,8 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("OrderItems");
 
                     b.Navigation("ProductImages");
+
+                    b.Navigation("ProductReview");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Role", b =>
@@ -526,6 +732,8 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("Addresses");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("ProductReview");
 
                     b.Navigation("cart")
                         .IsRequired();

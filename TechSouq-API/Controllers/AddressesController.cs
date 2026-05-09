@@ -42,12 +42,30 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
-        [HttpDelete("Delete")]
+        [HttpDelete("{AddressId}")]
         public async Task<IActionResult> DeleteAddress(int AddressId)
         {
             var userId = User.GetUserId();
            
             var result = await _addressService.DeleteAddress(AddressId, userId);
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpPut("{AddressId}")]
+        public async Task<IActionResult> setAsDefault(int AddressId)
+        {
+            var userId = User.GetUserId();
+
+            var result = await _addressService.setAsDefaultAsync(AddressId, userId);
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpGet("{AddressId}")]
+        public async Task<IActionResult> GetAddress(int AddressId)
+        {
+            var userId = User.GetUserId();
+
+            var result = await _addressService.GetAddressAsync(AddressId, userId);
             return this.ToHttpResponse(result);
         }
     }

@@ -11,7 +11,7 @@ namespace TechSouq.Application.Queries
 {
     public interface  IProductQueryService
     {
-        public Task<PagedResponse<ProductDto>> GetProductsPaged(int pageNumber, int pageSize,string? searchTerm=null);
+        public Task<PagedResponse<ProductDto>> GetProductsPaged(int pageNumber, int pageSize,string? searchTerm=null, string? Catogrie = null);
 
         public Task<ProductDto> GetProductById(int productId);
 

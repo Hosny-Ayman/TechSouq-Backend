@@ -52,5 +52,7 @@ namespace TechSouq.Infrastructure.Repositories
         {
             return await _appDbContext.Categories.AnyAsync(x => x.Id == CategorieId);
         }
+
+       
     }
 }

@@ -18,7 +18,8 @@ namespace TechSouq.Infrastructure.Data.Config
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.Name).HasColumnType("NVARCHAR(50)").IsRequired();
+            builder.Property(x => x.FirstName).HasColumnType("NVARCHAR(50)").IsRequired();
+            builder.Property(x => x.SecondName).HasColumnType("NVARCHAR(50)").IsRequired();
 
             builder.Property(x => x.Email).HasColumnType("NVARCHAR(255)").IsRequired();
             builder.HasIndex(x=>x.Email).IsUnique();

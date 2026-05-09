@@ -22,12 +22,33 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task <int>  AddAddress(Address address)
         {
-             _Context.Addresses.Add(address);
+            using var transaction = await _Context.Database.BeginTransactionAsync();
 
-            var save = await _Context.SaveChangesAsync();
+            try
+            {
+                _Context.Addresses.Add(address);
 
+                var save = await _Context.SaveChangesAsync();
 
-            return save > 0 ? address.Id : 0;
+                if (save > 0)
+                {
+                    var isSaved = await setAsDefaultAsync(address.Id, address.UserId);
+
+                    if (!isSaved)
+                    {
+                        await transaction.RollbackAsync();
+                        return 0;
+                    }
+                }
+
+                await transaction.CommitAsync();
+                return save;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return 0;
+            }
 
         }
 
@@ -59,13 +80,13 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task<Address> GetAddressById(int AddresId,bool trackingChanges=true)
+        public async Task<Address> GetAddressById(int AddresId,int userId,bool trackingChanges=true)
         {
             var query = _Context.Addresses.AsQueryable();
             if (!trackingChanges)
                 query = query.AsNoTracking();
 
-            return await query.FirstOrDefaultAsync(x => x.Id == AddresId);
+            return await query.FirstOrDefaultAsync(x => x.Id == AddresId && x.UserId == userId);
         }
 
         public async Task<bool> IsAddressExists(int AddressId, int userId)
@@ -73,6 +94,21 @@ namespace TechSouq.Infrastructure.Repositories
 
            
             return await _Context.Addresses.AnyAsync(x => x.UserId == userId && x.Id == AddressId);
+        }
+
+        public async Task<bool> setAsDefaultAsync(int AddressId, int userId)
+        {
+
+
+           var effrow = await _Context.Addresses.Where(x=>x.UserId==userId).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.Active,a=>a.Id == AddressId));
+
+            return effrow>0;
+
+        }
+
+        public async Task<int> HowManyAddressesHeHaveAsync(int userId)
+        {
+            return await _Context.Addresses.CountAsync(x => x.UserId == userId);
         }
     }
 }

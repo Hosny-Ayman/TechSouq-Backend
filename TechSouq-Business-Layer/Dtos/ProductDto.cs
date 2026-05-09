@@ -18,7 +18,14 @@ namespace TechSouq.Application.Dtos
         
 
         public string BrandName { get; set; }
-      
+
+        public decimal AverageRating { get; set; }
+        public int TotalReviews { get; set; }
+        public DateTime? DiscountStartDate { get; set; }
+        public DateTime? DiscountEndDate { get; set; }
+        public bool IsFreeShipping { get; set; }
+        public decimal? PriceAfterDiscount { get; set; }
+
     }
 
 }

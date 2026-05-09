@@ -43,6 +43,21 @@ namespace TechSouq.API.Controllers
                 _ => StatusCode(500, result)
             };
         }
+        [AllowAnonymous]
+        [HttpGet("GetAllCategoriesAsync")]
+        public async Task<IActionResult> GetAllCategoriesPagedAsync(int PageNumber,int PageSize)
+        {
+            var result = await _categorieService.GetAllCategoriesPagedAsync(PageNumber, PageSize);
+
+            return result.Status switch
+            {
+                OperationStatus.Success => Ok(result),
+                OperationStatus.BadRequest => BadRequest(result),
+                OperationStatus.NotFound => NotFound(result),
+                OperationStatus.ServerError => StatusCode(500, result),
+                _ => StatusCode(500, result)
+            };
+        }
 
         [HttpPost("Update")]
         public async Task<IActionResult> UpdateCategorie(CategorieDto categorieDto)

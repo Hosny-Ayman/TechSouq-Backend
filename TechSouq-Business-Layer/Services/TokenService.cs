@@ -25,7 +25,7 @@ namespace TechSouq.Application.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email,user.Email),
-                new Claim(JwtRegisteredClaimNames.Name,user.Name),
+                new Claim(JwtRegisteredClaimNames.Name,user.FirstName +" "+ user.SecondName),
                 new Claim(ClaimTypes.Role,user.Role.Name)
             };
 

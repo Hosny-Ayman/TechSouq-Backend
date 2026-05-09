@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
 using TechSouq.Domain.Entities;
@@ -14,7 +15,7 @@ namespace TechSouq.Application.Services
         private readonly IMapper _mapper;
         private readonly TokenService _tokenService;
 
-        public AuthService(IUserRepository userRepository, ILogger<AuthService> logger,IMapper mapper, TokenService tokenService)
+        public AuthService(IUserRepository userRepository, ILogger<AuthService> logger, IMapper mapper, TokenService tokenService)
         {
             _userRepository = userRepository;
             _logger = logger;
@@ -24,11 +25,8 @@ namespace TechSouq.Application.Services
 
         public async Task<OperationResult<int>> Register(RegisterDto registerDto)
         {
-           
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-
             var newUser = _mapper.Map<User>(registerDto);
-
             newUser.Password = hashedPassword;
 
             var newId = await _userRepository.AddUser(newUser);
@@ -43,18 +41,16 @@ namespace TechSouq.Application.Services
             return OperationResult<int>.Success(newId, "User registered successfully.");
         }
 
-     
-        public async Task<OperationResult<TokenDto>> Login(LoginDto loginDto)
+        public async Task<OperationResult<LoginResponseDto>> Login(LoginDto loginDto)
         {
-            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email,true);
+            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email, true);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
             {
                 _logger.LogWarning("Login failed for email: {Email}.", loginDto.Email);
-                return OperationResult<TokenDto>.BadRequest("Invalid Email or Password.");
+                return OperationResult<LoginResponseDto>.BadRequest("Invalid Email or OldPassword.");
             }
 
-        
             var accessToken = _tokenService.GenerateToken(user);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -62,10 +58,10 @@ namespace TechSouq.Application.Services
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             var IsUpdated = await _userRepository.UpdateUser(user);
 
-            if(!IsUpdated)
+            if (!IsUpdated)
             {
                 _logger.LogError("Update User With id: {Id} Failed", user.Id);
-                return OperationResult<TokenDto>.Failure();
+                return OperationResult<LoginResponseDto>.Failure();
             }
 
             var tokenDto = new TokenDto
@@ -74,70 +70,80 @@ namespace TechSouq.Application.Services
                 RefreshToken = refreshToken
             };
 
+            var userData = new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                SecondName = user.SecondName,
+                Email = user.Email,
+                RoleId = user.RoleId
+            };
+
+            var loginResponseDto = new LoginResponseDto
+            {
+                User = userData,
+                Token = tokenDto
+            };
+
             _logger.LogInformation("User logged in successfully: {Email}", loginDto.Email);
 
-            return OperationResult<TokenDto>.Success(tokenDto, "Login successful.");
-
-         
+            return OperationResult<LoginResponseDto>.Success(loginResponseDto, "Login successful.");
         }
 
         public async Task<OperationResult<TokenDto>> RefreshToken(TokenDto tokenDto)
         {
-           
-                var principal = _tokenService.GetPrincipalFromExpiredToken(tokenDto.AccessToken);
+            var principal = _tokenService.GetPrincipalFromExpiredToken(tokenDto.AccessToken);
 
-                var userIdClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
-                                  ?? principal.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+            var userIdClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
+                              ?? principal.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
 
-                int userId = userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
+            int userId = userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
 
-            if(userId <= 0)
+            if (userId <= 0)
             {
                 return OperationResult<TokenDto>.BadRequest("Invalid client request.");
             }
 
-                var user = await _userRepository.GetUser(userId);
+            var user = await _userRepository.GetUser(userId);
 
-                if (user == null || user.RefreshToken != tokenDto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                {
-                    return OperationResult<TokenDto>.BadRequest("Invalid client request.");
-                }
+            if (user == null || user.RefreshToken != tokenDto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return OperationResult<TokenDto>.BadRequest("Invalid client request.");
+            }
 
-                var newAccessToken = _tokenService.GenerateToken(user);
-                var newRefreshToken = _tokenService.GenerateRefreshToken();
+            var newAccessToken = _tokenService.GenerateToken(user);
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-                user.RefreshToken = newRefreshToken;
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-                await _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUser(user);
 
-                var newTokenDto = new TokenDto
-                {
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken
-                };
+            var newTokenDto = new TokenDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
 
-                return OperationResult<TokenDto>.Success(newTokenDto, "Token refreshed successfully.");
-           
-           
+            return OperationResult<TokenDto>.Success(newTokenDto, "Token refreshed successfully.");
         }
 
-        public async Task <OperationResult<bool>> Logout(int userId)
+        public async Task<OperationResult<bool>> Logout(int userId)
         {
-            var user = await _userRepository.GetUser(userId,true);
+            var user = await _userRepository.GetUser(userId, true);
 
             if (user == null)
             {
                 _logger.LogWarning("User not found. with id: {UserId}", userId);
-
                 return OperationResult<bool>.BadRequest("User not found.");
             }
+
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(-1);
 
             var result = await _userRepository.UpdateUser(user);
 
-            if(!result)
+            if (!result)
             {
                 _logger.LogError("Update User With id: {Id} Failed", user.Id);
                 return OperationResult<bool>.Failure();
@@ -145,6 +151,28 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("User LogOut Successfully with id: {UserId}", user.Id);
             return OperationResult<bool>.Success(result);
+        }
+
+        public async Task<OperationResult<bool>> LogoutWithToken(string accessToken)
+        {
+            try
+            {
+                var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+                var userIdClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
+                                  ?? principal.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+
+                if (userIdClaim != null)
+                {
+                    int userId = int.Parse(userIdClaim.Value);
+                    return await Logout(userId); 
+                }
+            }
+            catch
+            {
+                
+            }
+
+            return OperationResult<bool>.Success(true);
         }
     }
 }

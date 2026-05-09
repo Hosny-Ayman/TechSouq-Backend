@@ -3,8 +3,12 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Helper;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace TechSouq.Application.Services
 {
@@ -13,12 +17,16 @@ namespace TechSouq.Application.Services
         private readonly ICategorieRepository _categorieRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CategorieService> _logger;
+        private readonly ICategorieQueryService _queryService;
+        private readonly IDistributedCache _cache;
 
-        public CategorieService(ICategorieRepository categorieRepository, IMapper mapper, ILogger<CategorieService> logger)
+        public CategorieService(ICategorieRepository categorieRepository, IMapper mapper, ILogger<CategorieService> logger, ICategorieQueryService queryService, IDistributedCache cache)
         {
             _categorieRepository = categorieRepository;
             _mapper = mapper;
             _logger = logger;
+            _queryService = queryService;
+            _cache = cache;
         }
 
         public async Task<OperationResult<int>> CreateCategorie(CategorieDto categorieDto)
@@ -56,6 +64,46 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Result Id: {Id} Get Successfully", categorieId);
             return OperationResult<CategorieDto>.Success(categorieDto);
+        }
+
+        public async Task<OperationResult<PagedResponse<CategorieDto>>> GetAllCategoriesPagedAsync(int PageNumber,int PageSize)
+        {
+            //if (categorieId <= 0)
+            //{
+            //    _logger.LogWarning("Invalid data result Id: {Id}", categorieId);
+            //    return OperationResult<CategorieDto>.BadRequest("Invalid data", new List<string> { $"Invalid data result Id: {categorieId}" });
+            //}
+
+            string cacheKey = $"Categories_Page_{PageNumber}_Size_{PageSize}";
+
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                var cachedCategories = JsonSerializer.Deserialize<PagedResponse<CategorieDto>>(cachedData);
+                _logger.LogInformation("Get categories from Cache Successfully");
+                return OperationResult<PagedResponse<CategorieDto>>.Success(cachedCategories);
+            }
+
+            var Allcategories = await _queryService.GetAllCategoriePaged(PageNumber, PageSize);
+
+            if (Allcategories == null)
+            {
+                _logger.LogWarning("There is No categories");
+                return OperationResult<PagedResponse<CategorieDto>>.NotFound("There is No categories");
+            }
+
+           
+            var cacheOptions = new DistributedCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromHours(1)); 
+
+            var jsonData = JsonSerializer.Serialize(Allcategories);
+            await _cache.SetStringAsync(cacheKey, jsonData, cacheOptions);
+
+
+
+            _logger.LogInformation("Get  categories Successfully");
+            return OperationResult<PagedResponse<CategorieDto>>.Success(Allcategories);
         }
 
         public async Task<OperationResult<bool>> UpdateCategorie(CategorieDto categorieDto)

@@ -11,5 +11,6 @@ namespace TechSouq.Domain.Interfaces
         Task<bool> DeleteUser(int userId);
         Task<bool> IsUserExists(int userId);
         Task<User> GetUserByEmailAsync(string Email, bool trackingChanges = false);
+
     }
 }

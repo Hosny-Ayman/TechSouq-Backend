@@ -8,6 +8,8 @@ using TechSouq.Application.Helper;
 using TechSouq.Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using TechSouq.Application.Queries;
+using AutoMapper.QueryableExtensions;
+using AutoMapper;
 
 namespace TechSouq.Infrastructure.Queries
 {
@@ -15,13 +17,16 @@ namespace TechSouq.Infrastructure.Queries
     {
 
         private readonly AppDbContext _appDbContext;
+        private readonly IMapper _mapper;
+       
 
-        public ProductQueryService(AppDbContext context)
+        public ProductQueryService(AppDbContext context, IMapper mapper)
         {
             _appDbContext = context;
+            _mapper = mapper;
         }
 
-        public async Task<PagedResponse<ProductDto>> GetProductsPaged(int pageNumber, int pageSize, string? searchTerm = null)
+        public async Task<PagedResponse<ProductDto>> GetProductsPaged(int pageNumber, int pageSize, string? searchTerm = null,string? Catogrie = null)
         {
             var totalRecords = await _appDbContext.Products.CountAsync();
 
@@ -30,6 +35,15 @@ namespace TechSouq.Infrastructure.Queries
             if(!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(p => p.Name.Contains(searchTerm));
+            }
+
+            if(!string.IsNullOrWhiteSpace(Catogrie))
+            {
+                var catogrie = await _appDbContext.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Name == Catogrie);
+                if(catogrie != null)
+                {
+                    query = query.Where(p => p.CategoryId==catogrie.Id);
+                }
             }
 
             var data = await query
@@ -41,12 +55,16 @@ namespace TechSouq.Infrastructure.Queries
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    //Description = p.Description,
-                    //Stock = p.Stock,
                     Price = p.Price,
                     FirstImage = p.ProductImages.Select(img => img.ImageUrl).FirstOrDefault(),
-                    //CategoryName = p.Categorie.Name,
-                    //BrandName = p.Brand.Name,
+                    Stock = p.Stock,
+                   PriceAfterDiscount = p.PriceAfterDiscount,
+                   DiscountStartDate = p.DiscountStartDate,
+                   DiscountEndDate = p.DiscountEndDate,
+                   AverageRating = p.AverageRating,
+                   TotalReviews = p.TotalReviews,
+                   IsFreeShipping = p.IsFreeShipping,
+
 
 
 
@@ -58,26 +76,42 @@ namespace TechSouq.Infrastructure.Queries
         public async Task<ProductDto> GetProductById(int productId)
         {
 
-            var data = await _appDbContext.Products.AsNoTracking().Select(x => new ProductDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Price = x.Price,
-                Description = x.Description,
-                Stock = x.Stock,
-                FirstImage = x.ProductImages.Select(img => img.ImageUrl).FirstOrDefault(),
-                Images = x.ProductImages.Select(x=>x.ImageUrl).ToList(),
-                CategoryName = x.Categorie.Name,
-                BrandName = x.Brand.Name,
-            }).FirstOrDefaultAsync(x=>x.Id == productId);
+            var data = await _appDbContext.Products
+        .AsNoTracking()
+        .Where(x => x.Id == productId)
+        .Select(x => new ProductDto
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Description = x.Description,
+            Price = x.Price,
+            Stock = x.Stock,
+
+            Images = x.ProductImages
+                .Select(img => img.ImageUrl)
+                .ToList(),
+
+            FirstImage = x.ProductImages
+                .Select(img => img.ImageUrl)
+                .FirstOrDefault(),
+
+            AverageRating = x.AverageRating,
+
+            TotalReviews = x.TotalReviews,
+
+            IsFreeShipping = x.IsFreeShipping,
+
+            DiscountStartDate = x.DiscountStartDate, 
+
+            DiscountEndDate = x.DiscountEndDate,
+
+            PriceAfterDiscount = x.PriceAfterDiscount
+        })
+        .FirstOrDefaultAsync();
 
             return data;
 
         }
-
-       
-
-       
 
     }
 }

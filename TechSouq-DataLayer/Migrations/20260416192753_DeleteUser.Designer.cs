@@ -331,7 +331,7 @@ namespace TechSouq_DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR(50)");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("OldPassword")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(255)");
 

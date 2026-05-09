@@ -12,4 +12,10 @@ namespace TechSouq.Domain.Enums
         CheckedOut=2,
         Cancelled=3
     }
+
+    public enum DiscountType
+    {
+        Percentage = 1, 
+        FixedAmount = 2 
+    }
 }

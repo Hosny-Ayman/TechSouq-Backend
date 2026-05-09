@@ -28,6 +28,9 @@ namespace TechSouq.Application.Mappings
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<User, RegisterDto>().ReverseMap();
+            CreateMap<ProductReview, ProductReviewDto>().ReverseMap();
+            CreateMap<Coupons, CouponDto>().ReverseMap();
+            CreateMap<SystemSettings, SystemSettingDto>().ReverseMap();
         }
 
     }

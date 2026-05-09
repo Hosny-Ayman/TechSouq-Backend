@@ -22,6 +22,15 @@ namespace TechSouq.Application.Validators
             RuleFor(x => x.City)
                 .NotEmpty().WithMessage("City Should Not Empty");
 
+            RuleFor(x => x.Country)
+              .NotEmpty().WithMessage("country Should Not Empty");
+
+            RuleFor(x => x.FirstName)
+               .NotEmpty().WithMessage("FirstName Should Not Empty");
+
+            RuleFor(x => x.LastName)
+               .NotEmpty().WithMessage("LastName Should Not Empty");
+
             RuleFor(x => x.UserId)
                 .NotNull().WithMessage("UserId is required");
 

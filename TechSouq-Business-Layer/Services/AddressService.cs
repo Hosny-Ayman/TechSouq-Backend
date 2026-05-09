@@ -24,6 +24,14 @@ namespace TechSouq.Application.Services
 
         public async Task<OperationResult<int>> AddAddress(AddressDto addressDto)
         {
+            var howManyAddressUserHave = await _addressRepository.HowManyAddressesHeHaveAsync(addressDto.UserId);
+
+            if(howManyAddressUserHave==5)
+            {
+                _logger.LogWarning("User has many addresses userId ({UserId}).", addressDto.UserId);
+                return OperationResult<int>.BadRequest("Add Address Failed User has many addresses");
+            }
+
             var address = _mapper.Map<Address>(addressDto);
             var newId = await _addressRepository.AddAddress(address);
 
@@ -67,7 +75,7 @@ namespace TechSouq.Application.Services
                 return OperationResult<bool>.BadRequest("Invalid id", new List<string> { $"Invalid id {addressDto.Id}" });
             }
 
-            var address = await _addressRepository.GetAddressById(addressDto.Id);
+            var address = await _addressRepository.GetAddressById(addressDto.Id, addressDto.UserId);
 
             if (address == null)
             {
@@ -118,5 +126,57 @@ namespace TechSouq.Application.Services
             _logger.LogInformation("Address with Id {AddressId} Deleted Successfully", addressId);
             return OperationResult<bool>.Success(result);
         }
+
+        public async Task<OperationResult<bool>> setAsDefaultAsync(int addressId, int userId)
+        {
+            if (addressId <= 0 || userId <= 0)
+            {
+                _logger.LogWarning("Delete Address with Invalid AddressId {AddressId} or userId: {userId}", addressId, userId);
+                return OperationResult<bool>.BadRequest("Invalid Data");
+            }
+
+            var isExists = await _addressRepository.IsAddressExists(addressId, userId);
+
+            if (!isExists)
+            {
+                _logger.LogWarning("Address with Id {AddressId} Not Found. Delete Failed.", addressId);
+                return OperationResult<bool>.NotFound($"Address with Not Found Or Delted");
+            }
+
+            var IsSuccess = await _addressRepository.setAsDefaultAsync(addressId, userId);
+
+            if(!IsSuccess)
+            {
+                _logger.LogError("An unexpected error occurred while  setAsDefault Address with Id {AddressId}.", addressId);
+                return OperationResult<bool>.Failure();
+            }
+
+            _logger.LogInformation("Address with Id {AddressId} setAsDefault Successfully", addressId);
+            return OperationResult<bool>.Success(IsSuccess);
+        }
+
+        public async Task<OperationResult<AddressDto>> GetAddressAsync(int addressId, int userId)
+        {
+            if (addressId <= 0 || userId <= 0)
+            {
+                _logger.LogWarning("Delete Address with Invalid AddressId {AddressId} or userId: {userId}", addressId, userId);
+                return OperationResult<AddressDto>.BadRequest("Invalid Data");
+            }
+
+            var address = await _addressRepository.GetAddressById(addressId, userId);
+
+            if (address == null)
+            {
+                _logger.LogWarning("Address with Id {AddressId} Not Found. Delete Failed.", addressId);
+                return OperationResult<AddressDto>.NotFound($"Address with Not Found Or Delted");
+            }
+
+            var addressDto = _mapper.Map<AddressDto>(address);
+
+
+            _logger.LogInformation("Address with Id {AddressId} setAsDefault Successfully", addressId);
+            return OperationResult<AddressDto>.Success(addressDto);
+        }
+
     }
 }

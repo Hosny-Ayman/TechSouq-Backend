@@ -18,11 +18,14 @@ namespace TechSouq.Domain.Interfaces
 
         Task <bool> DeleteAddress(int AddresId);
 
-        Task <Address> GetAddressById(int AddresId, bool trackingChanges = true);
+        Task <Address> GetAddressById(int AddresId,int userId, bool trackingChanges = true);
 
         Task<bool> IsAddressExists(int AddressId, int userId);
 
-       
+        Task<bool> setAsDefaultAsync(int AddressId, int userId);
+
+        Task<int> HowManyAddressesHeHaveAsync(int userId);
+
 
     }
 }

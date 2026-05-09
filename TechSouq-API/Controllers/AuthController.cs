@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using TechSouq.API.Extensions;
 using TechSouq.Application;
 using TechSouq.Application.Dtos;
@@ -25,10 +27,10 @@ namespace TechSouq.API.Controllers
         {
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true, 
-                Expires = DateTime.UtcNow.AddDays(7), 
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
                 Secure = true,
-                SameSite = SameSiteMode.None 
+                SameSite = SameSiteMode.None
             };
 
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
@@ -62,20 +64,21 @@ namespace TechSouq.API.Controllers
 
             if (result.IsSuccess)
             {
-                SetRefreshTokenInCookie(result.Data.RefreshToken);
-                SetAccessTokenInCookie(result.Data.AccessToken);
+                SetRefreshTokenInCookie(result.Data.Token.RefreshToken);
+                SetAccessTokenInCookie(result.Data.Token.AccessToken);
 
-                return Ok(OperationResult<object>.Success(dto.Email));
+                return Ok(OperationResult<object>.Success(result.Data.User));
             }
 
             return this.ToHttpResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpPost("RefreshToken")]
-        public async Task<IActionResult> RefreshToken() 
+        public async Task<IActionResult> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var accessToken = Request.Cookies["accessToken"]; 
+            var accessToken = Request.Cookies["accessToken"];
 
             if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
             {
@@ -96,24 +99,21 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
-                    ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+            var accessToken = Request.Cookies["accessToken"];
 
-            if (userIdClaim == null) return Unauthorized();
-
-            int userId = int.Parse(userIdClaim.Value);
-            var result = await _authService.Logout(userId);
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await _authService.LogoutWithToken(accessToken);
+            }
 
             Response.Cookies.Delete("refreshToken");
             Response.Cookies.Delete("accessToken");
 
-            return this.ToHttpResponse(result);
+            return Ok(OperationResult<object>.Success("Logged out successfully."));
         }
-
-
     }
 }

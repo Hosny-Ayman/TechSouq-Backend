@@ -20,6 +20,13 @@
 
         public ICollection<OrderItem> OrderItems { get; set; }
 
+        public int? DeliveryZoneId { get; set; }
+        public DeliveryZone DeliveryZone {  get; set; }
+
+        public string? ShippingGovernorate { get; set; }
+       
+        public decimal DeliveryCost { get; set; }
+
 
     }
 }

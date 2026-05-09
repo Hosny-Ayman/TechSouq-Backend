@@ -22,18 +22,26 @@ namespace TechSouq.API.Controllers
         }
 
         [HttpPost("AddItem")]
-        public async Task<IActionResult> AddItemToCart(CartItemDto CartItem)
+        public async Task<IActionResult> AddItemToCartItem(CartItemDto CartItem)
         {
             var userId = User.GetUserId();
             var result = await _CartItemService.AddCartItem(userId, CartItem);
             return this.ToHttpResponse(result);
         }
 
-        [HttpPut("UpdateItem")]
-        public async Task<IActionResult> UpdateCartItem(CartItemDto cartItem)
+        [HttpPost("AddItems")]
+        public async Task<IActionResult> AddItemsToCartItem(List<CartItemDto> CartItems)
         {
             var userId = User.GetUserId();
-            var result = await _CartItemService.UpdateCartItem(userId, cartItem);
+            var result = await _CartItemService.AddCartItems(userId, CartItems);
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpPut("UpdateItem")]
+        public async Task<IActionResult> UpdateCartItem(List<CartItemDto> cartItems)
+        {
+            var userId = User.GetUserId();
+            var result = await _CartItemService.UpdateCartItem(userId, cartItems);
             return this.ToHttpResponse(result);
         }
 
@@ -54,10 +62,29 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
+        [HttpGet("GetCartItem")]
+        public async Task<IActionResult> GetCartItem(int productId)
+        {
+            var userId = User.GetUserId();
+            var result = await _CartItemService.GetCartItemAsync(userId, productId);
+
+            return this.ToHttpResponse(result);
+        }
+
+
+        [HttpGet("GetCartItemesWithProducts")]
+        public async Task<IActionResult> GetCartItemesWithProducts()
+        {
+            var userId = User.GetUserId();
+            var result = await _CartItemService.GetAllCartItemsWithProductDetailsAsync(userId);
+
+            return this.ToHttpResponse(result);
+        }
+
         //[HttpPost("Creat")]
-        //public async Task<IActionResult> CreateItemCart(CartItemDto CartItem)
+        //public async Task<IActionResult> CreateItemCart(CartItemDto CartItems)
         //{
-        //    var result = await _CartItemService.AddCartItem(CartItem);
+        //    var result = await _CartItemService.AddCartItem(CartItems);
 
         //    return this.ToHttpResponse(result);
         //}

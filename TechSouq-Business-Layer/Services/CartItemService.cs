@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
@@ -16,47 +17,100 @@ namespace TechSouq.Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<CartItemService> _logger;
         private readonly ICartRepository _cartRepository;
+        private readonly ICartItemsQueryService _cartItemsQueryService;
 
-        public CartItemService(ICartItemRepository cartItemRepository, IMapper mapper, ILogger<CartItemService> logger, ICartRepository cartRepository)
+        public CartItemService(ICartItemRepository cartItemRepository, IMapper mapper, ILogger<CartItemService> logger, ICartRepository cartRepository, ICartItemsQueryService cartItemsQueryService)
         {
             _cartItemRepository = cartItemRepository;
             _mapper = mapper;
             _logger = logger;
             _cartRepository = cartRepository;
+            _cartItemsQueryService = cartItemsQueryService;
         }
 
-        public async Task<OperationResult<string>> AddCartItem(int userId,CartItemDto cartItemDto)
+        public async Task<OperationResult<int>> AddCartItem(int userId,CartItemDto cartItemDto)
         {
             var cartItem = _mapper.Map<CartItem>(cartItemDto);
-            bool IsSavedUpdateOrAddCartItem = false;
-            bool IsSavedAddCart = false;
+            bool IsSaved = false;
 
-            var userCartId = await _cartRepository.GetCartIdbyUserId(userId);
+            var userCart = await _cartRepository.GetCartIdbyUserId(userId);
 
-            if(userCartId != 0)
+            if(userCart != null)
             {
-                cartItem.CartId = userCartId;
+                cartItem.CartId = userCart.Id;
 
-                IsSavedUpdateOrAddCartItem = await _cartItemRepository.AddOrUpdateCartItemAsync(cartItem.CartId, cartItem.ProductId);
+                IsSaved = await _cartItemRepository.AddOrUpdateCartItemAsync(cartItem.CartId, cartItem.ProductId);
+
+                if (!IsSaved)
+                {
+                    _logger.LogError("Failed to add cartItems to the database");
+                    return OperationResult<int>.Failure();
+                }
+            }
+            else
+            {
+                userCart = new Cart { UserId = userId };
+
+                userCart.Id = await _cartItemRepository.AddCartAndCartItems(cartItem, userCart);
+
+                if (userCart.Id == 0)
+                {
+                    _logger.LogError("Failed to add cartItems to the database");
+                    return OperationResult<int>.Failure();
+                }
+
+            }
+
+
+            var cartItemsLength = await _cartItemRepository.GetCartItemsLengthAsync(userCart.Id);
+            
+
+            _logger.LogInformation("Item added Successfully. ProductId: {ProductId}", cartItemDto.ProductId);
+            return OperationResult<int>.Success(cartItemsLength);
+        }
+
+        public async Task<OperationResult<int>> AddCartItems(int userId, List<CartItemDto> cartItemsDto)
+        {
+            var cartItems = _mapper.Map<List<CartItem>>(cartItemsDto);
+            int IsSavedUpdateOrAddCartItem = 0;
+            int newcartId = 0;
+
+            var userCart = await _cartRepository.GetCartIdbyUserId(userId);
+
+            if (userCart != null)
+            {
+                //cartItems[0].CartId = userCart;
+
+                IsSavedUpdateOrAddCartItem = await _cartItemRepository.AddCartItems(cartItems, userCart);
+
+                if (IsSavedUpdateOrAddCartItem==0)
+                {
+                    _logger.LogError("Failed to add cartItems to the database");
+                    return OperationResult<int>.Failure();
+                }
             }
             else
             {
                 var Cart = new Cart();
                 Cart.UserId = userId;
-                cartItem.CartId = userCartId;
+                Cart.Id = 0;
 
-                IsSavedAddCart = await _cartItemRepository.AddCartAndCartItems(cartItem, Cart);
+                newcartId = await _cartItemRepository.AddCartItems(cartItems, Cart);
+
+                if (newcartId == 0)
+                {
+                    _logger.LogError("Failed to add cartItems to the database");
+                    return OperationResult<int>.Failure();
+                }
 
             }
 
-            if (!IsSavedUpdateOrAddCartItem  || !IsSavedAddCart)
-            {
-                _logger.LogError("Failed to add cartItem to the database");
-                return OperationResult<string>.Failure();
-            }
 
-            _logger.LogInformation("Item added Successfully. ProductId: {ProductId}", cartItemDto.ProductId);
-            return OperationResult<string>.Success("Item added Successfully");
+            var cartItemsLength = await _cartItemRepository.GetCartItemsLengthAsync(newcartId);
+
+
+            _logger.LogInformation("Items added Successfully. userId: {userId}", userId);
+            return OperationResult<int>.Success(cartItemsLength);
         }
 
         public async Task<OperationResult<List<CartItemDto>>> GetCartItems(int userId)
@@ -67,19 +121,19 @@ namespace TechSouq.Application.Services
                 return OperationResult<List<CartItemDto>>.BadRequest("Invalid Data");
             }
 
-            var userCartId = await _cartRepository.GetCartIdbyUserId(userId);
+            var userCart = await _cartRepository.GetCartIdbyUserId(userId);
 
-            if (userCartId == 0)
+            if (userCart == null)
             {
-                _logger.LogWarning("No Items Found With userId: {CartId}", userCartId);
+                _logger.LogWarning("No Items Found With userId: {userId}", userId);
                 return OperationResult<List<CartItemDto>>.NotFound("Cart not found or empty.");
             }
 
-            var result = await _cartItemRepository.GetCartItems(userCartId);
+            var result = await _cartItemRepository.GetCartItems(userCart.Id);
 
             if (result == null || !result.Any())
             {
-                _logger.LogWarning("No Items Found With userCartId: {userCartId}", userCartId);
+                _logger.LogWarning("No Items Found With userCart: {userCart}", userCart);
                 return OperationResult<List<CartItemDto>>.NotFound("Cart not found or empty.");
             }
 
@@ -87,16 +141,11 @@ namespace TechSouq.Application.Services
             return OperationResult<List<CartItemDto>>.Success(mapped);
         }
 
-        public async Task<OperationResult<bool>> UpdateCartItem(int userId,CartItemDto cartItemDto)
+        public async Task<OperationResult<bool>> UpdateCartItem(int userId,List<CartItemDto> cartItemsDto)
         {
-            //if (cartItemsDtos == null || !cartItemsDtos.Any())
-            //{
-            //    _logger.LogWarning("Update attempt with empty or null cart items list.");
-            //    return OperationResult<bool>.BadRequest("Update Failed empty or null cart items list");
-            //}
 
-            var CartItem = _mapper.Map<CartItem>(cartItemDto);
-            var result = await _cartItemRepository.UpdateCartItems(userId, CartItem);
+            var CartItems = _mapper.Map<List<CartItem>>(cartItemsDto);
+            var result = await _cartItemRepository.UpdateCartItems(userId, CartItems);
 
             if (!result)
             {
@@ -124,9 +173,9 @@ namespace TechSouq.Application.Services
             //    return OperationResult<bool>.NotFound($"CartItem With Id: {cartItemId} Not Found");
             //}
 
-            var cartId = await _cartRepository.GetCartIdbyUserId(userId);
+            var usercart = await _cartRepository.GetCartIdbyUserId(userId);
 
-            var result = await _cartItemRepository.RemoveCartItem(cartId, productId);
+            var result = await _cartItemRepository.RemoveCartItem(usercart.Id, productId);
 
             if (!result)
             {
@@ -134,8 +183,59 @@ namespace TechSouq.Application.Services
                 return OperationResult<bool>.Failure();
             }
 
-            _logger.LogInformation("Delete CartItem With Id: {CartItemId} Successfully", cartId);
+            _logger.LogInformation("Delete CartItem With Id: {CartItemId} Successfully", usercart);
             return OperationResult<bool>.Success(result);
+        }
+
+        public async Task<OperationResult<CartItemDto>> GetCartItemAsync(int userId, int ProductId)
+        {
+            if (userId <= 0 || ProductId <= 0)
+            {
+                _logger.LogWarning("Read Cart Invalid Data userId: {userId} or ProductId: {ProductId}", userId, ProductId);
+                return OperationResult<CartItemDto>.BadRequest("Invalid Data");
+            }
+
+            var userCart = await _cartRepository.GetCartIdbyUserId(userId);
+
+            if (userCart == null)
+            {
+                _logger.LogWarning("No Items Found With userId: {userId}", userId);
+                return OperationResult<CartItemDto>.NotFound("Cart not found or empty.");
+            }
+
+            var result = await _cartItemRepository.GetCartItemAsync(userCart.Id, ProductId);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Read CartId: {CartId} or ProductId: {ProductId} Failed. Not Found.", userCart, ProductId);
+                return OperationResult<CartItemDto>.NotFound("Cart Not Found");
+            }
+
+            var cartItemDto = _mapper.Map<CartItemDto>(result);
+
+            _logger.LogInformation("Read Cart Successfully CartId: {CartId} and ProductId: {ProductId}", userCart, ProductId);
+            return OperationResult<CartItemDto>.Success(cartItemDto);
+        }
+
+        public async Task<OperationResult<List<CartItemsWithProductDetailsDto>>> GetAllCartItemsWithProductDetailsAsync(int userId)
+        {
+            if (userId <= 0)
+            {
+                _logger.LogWarning("Read Cart Invalid Data userId: {userId} ", userId);
+                return OperationResult<List<CartItemsWithProductDetailsDto>>.BadRequest("Invalid Data");
+            }
+
+            var CartItemsWithProductData = await _cartItemsQueryService.GetAllCartItemsWithProductDetailsAsync(userId);
+
+            if (CartItemsWithProductData == null ||!CartItemsWithProductData.Any())
+            {
+                _logger.LogWarning("No CartItems Found With userId: {userId}", userId);
+                return OperationResult<List<CartItemsWithProductDetailsDto>>.NotFound("CartItems not found or empty.");
+            }
+
+            _logger.LogInformation("Read CartItems Successfully userId: {userId}", userId);
+            return OperationResult<List<CartItemsWithProductDetailsDto>>.Success(CartItemsWithProductData);
+
         }
     }
 }
