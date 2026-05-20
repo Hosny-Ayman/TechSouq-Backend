@@ -44,7 +44,18 @@ namespace TechSouq.Infrastructure.Queries
                 .OrderBy(x => x.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ProjectTo<ProductReviewDto>(_mapper.ConfigurationProvider)
+                .Select(x=> new ProductReviewDto
+                {
+                    Id=x.Id,
+                    Rating = x.Rating,
+                    Comment = x.Comment,
+                    CreatedAt = x.CreatedAt,
+                    ProductId = x.ProductId,
+                    UserId = x.UserId,
+                    UserFullName = x.User.FirstName + " " + x.User.SecondName,
+
+
+                })
                 .ToListAsync();
 
             return new PagedResponse<ProductReviewDto>(

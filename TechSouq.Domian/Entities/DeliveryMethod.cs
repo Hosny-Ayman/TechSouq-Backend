@@ -12,7 +12,7 @@ namespace TechSouq.Domain.Entities
         public string Name { get; set; }
         public decimal Cost { get; set; }
 
-        public Order order { get; set; }
+       
     }
 
 }

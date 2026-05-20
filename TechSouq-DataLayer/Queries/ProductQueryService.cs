@@ -109,6 +109,8 @@ namespace TechSouq.Infrastructure.Queries
         })
         .FirstOrDefaultAsync();
 
+          
+
             return data;
 
         }

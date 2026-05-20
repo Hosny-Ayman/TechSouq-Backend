@@ -115,5 +115,38 @@ namespace TechSouq.API.Controllers
 
             return Ok(OperationResult<object>.Success("Logged out successfully."));
         }
+
+        [AllowAnonymous]
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var result = await _authService.ForgotPassword(dto);
+            return this.ToHttpResponse(result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            var result = await _authService.ResetPassword(dto);
+            return this.ToHttpResponse(result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("GoogleLogin")]
+        public async Task<IActionResult> GoogleLogin(GoogleLoginDto dto)
+        {
+            var result = await _authService.GoogleLogin(dto);
+
+            if (result.IsSuccess)
+            {
+                SetRefreshTokenInCookie(result.Data.Token.RefreshToken);
+                SetAccessTokenInCookie(result.Data.Token.AccessToken);
+
+                return Ok(OperationResult<object>.Success(result.Data.User));
+            }
+
+            return this.ToHttpResponse(result);
+        }
     }
 }

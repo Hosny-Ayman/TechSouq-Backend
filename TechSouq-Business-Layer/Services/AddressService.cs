@@ -115,7 +115,7 @@ namespace TechSouq.Application.Services
                 return OperationResult<bool>.NotFound($"Address with Id {addressId} Not Found");
             }
 
-            var result = await _addressRepository.DeleteAddress(addressId);
+            var result = await _addressRepository.DeleteAddress(addressId, userId);
 
             if (!result)
             {
@@ -168,7 +168,7 @@ namespace TechSouq.Application.Services
             if (address == null)
             {
                 _logger.LogWarning("Address with Id {AddressId} Not Found. Delete Failed.", addressId);
-                return OperationResult<AddressDto>.NotFound($"Address with Not Found Or Delted");
+                return OperationResult<AddressDto>.NotFound($"Address Not Found Or Delted");
             }
 
             var addressDto = _mapper.Map<AddressDto>(address);
@@ -176,6 +176,49 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Address with Id {AddressId} setAsDefault Successfully", addressId);
             return OperationResult<AddressDto>.Success(addressDto);
+        }
+
+        public async Task<OperationResult<AddressDto>> GetOnlyDefaultAddress(int userId)
+        {
+            if ( userId <= 0)
+            {
+                _logger.LogWarning("Invalid userId: {userId}", userId);
+                return OperationResult<AddressDto>.BadRequest("Invalid Data");
+            }
+
+            var address = await _addressRepository.GetOnlyDefaultAddress(userId);
+
+            if (address == null)
+            {
+                _logger.LogWarning("Address Default with userId {userId} Not Found. Delete Failed.", userId);
+                return OperationResult<AddressDto>.NotFound($"Address Default Not Found Or Delted");
+            }
+
+            var addressDto = _mapper.Map<AddressDto>(address);
+
+
+            _logger.LogInformation("Address with  userId {userId} Get Successfully", userId);
+            return OperationResult<AddressDto>.Success(addressDto);
+        }
+
+        public async Task<OperationResult<decimal>> GetCityShippingCost(int userId, string? CityName)
+        {
+            if (userId <= 0)
+            {
+                _logger.LogWarning("Invalid userId: {userId}", userId);
+                return OperationResult<decimal>.BadRequest("Invalid Data");
+            }
+
+            var ShippingCost = await _addressRepository.GetCityShippingCost(userId, CityName);
+
+            if (ShippingCost == 0)
+            {
+                _logger.LogWarning("Defaul City Name with userId {userId} Not Found. Delete Failed.", userId);
+                return OperationResult<decimal>.NotFound($"Address Default Not Found Or Delted");
+            }
+
+            _logger.LogInformation("Defaul City Name with userId {userId} Get Successfully", userId);
+            return OperationResult<decimal>.Success(ShippingCost);
         }
 
     }

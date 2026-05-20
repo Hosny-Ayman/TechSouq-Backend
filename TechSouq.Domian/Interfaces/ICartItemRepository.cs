@@ -22,7 +22,7 @@ namespace TechSouq.Domain.Interfaces
 
         Task<int> AddCartAndCartItems(CartItem cartItem , Cart Cart);
 
-        Task<bool> AddOrUpdateCartItemAsync(int CartId, int ProductId);
+        Task<bool> UpdateCartItem(int CartId, int ProductId);
 
         Task<CartItem> GetCartItemAsync(int CartId, int ProductId,bool trackingChanges = true);
 
@@ -30,7 +30,9 @@ namespace TechSouq.Domain.Interfaces
 
         Task<int> AddCartItems(List<CartItem> cartItems,Cart cart);
 
-        Task<decimal> GetCartItemsTotalAmounts(int cartId);
+        Task<decimal> GetCartItemsTotalAmounts(decimal ShippingCost,int cartId);
+
+       
 
 
 

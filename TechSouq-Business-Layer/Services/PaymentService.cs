@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TechSouq.Application.Dtos;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Interfaces;
 
 namespace TechSouq.Application.Services
@@ -14,17 +16,17 @@ namespace TechSouq.Application.Services
     {
         private readonly ILogger<PaymentService> _logger;
         private readonly ICartRepository _cartRepository;
-        private readonly ICartItemRepository _cartItemRepository;
+        private readonly IOrderQueryService _OrderConfirmQueryService;
 
-        public PaymentService(ILogger<PaymentService> logger, ICartRepository cartRepository, ICartItemRepository cartItemRepository) 
+        public PaymentService(ILogger<PaymentService> logger, ICartRepository cartRepository, IOrderQueryService OrderConfirmQueryService) 
         {
             _logger = logger;
             _cartRepository = cartRepository;
-            _cartItemRepository = cartItemRepository;
+            _OrderConfirmQueryService = OrderConfirmQueryService;
 
         }
 
-        public async Task<OperationResult<string>> CreatePaymentIntent(int userId)
+        public async Task<OperationResult<string>> CreatePaymentIntent(ConfirmOrderDto confirmOrderDto, int userId)
         {
 
             var cart = await _cartRepository.GetCartIdbyUserId(userId);
@@ -35,8 +37,8 @@ namespace TechSouq.Application.Services
                 return OperationResult<string>.NotFound("User Is not Have any card");
             }
 
-            var totalAmount = await _cartItemRepository.GetCartItemsTotalAmounts(cart.Id);
-
+            var totalAmount = await _OrderConfirmQueryService.ConfirmOrderAsync(confirmOrderDto, cart.Id, userId);
+           
             if (totalAmount <= 0)
             {
                 _logger.LogWarning("Cart total amount is zero for userId: {userId}", userId);
@@ -59,6 +61,33 @@ namespace TechSouq.Application.Services
             return OperationResult<string>.Success(intent.ClientSecret);
 
         }
+
+        public async Task<OperationResult<string>> CreatePaymentForCash(ConfirmOrderDto confirmOrderDto, int userId)
+        {
+
+            var cart = await _cartRepository.GetCartIdbyUserId(userId);
+
+            if (cart == null)
+            {
+                _logger.LogWarning("User Is not Have any card userid:{userId}", userId);
+                return OperationResult<string>.NotFound("User Is not Have any card");
+            }
+
+            var totalAmount = await _OrderConfirmQueryService.ConfirmOrderAsync(confirmOrderDto, cart.Id, userId);
+
+            if (totalAmount <= 0)
+            {
+                _logger.LogWarning("Cart total amount is zero for userId: {userId}", userId);
+                return OperationResult<string>.BadRequest("Cary is Empty");
+            }
+
+  
+            _logger.LogInformation("Create Payment With Amount:{totalAmount} Cash", totalAmount);
+            return OperationResult<string>.Success("Confirm Order Sucessfully");
+
+        }
+
+
 
     }
 }

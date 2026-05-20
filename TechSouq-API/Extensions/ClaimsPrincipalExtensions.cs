@@ -10,12 +10,15 @@ namespace TechSouq.API.Extensions
     {
         public static int GetUserId(this ClaimsPrincipal user)
         {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst(JwtRegisteredClaimNames.Sub);
+            if (user.Identity is null || !user.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("User is not authenticated");
 
-            if(userIdClaim == null)
-            {
-                return 0;
-            }
+            var userIdClaim =
+                user.FindFirst(ClaimTypes.NameIdentifier)
+                ?? user.FindFirst(JwtRegisteredClaimNames.Sub);
+
+            if (userIdClaim is null)
+                throw new UnauthorizedAccessException("User ID claim not found");
 
             return int.Parse(userIdClaim.Value);
         }

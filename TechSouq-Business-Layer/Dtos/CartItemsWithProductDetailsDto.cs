@@ -16,5 +16,8 @@ namespace TechSouq.Application.Dtos
         public decimal ProductPrice { get; set; }
         public int Quantity { get; set; }
         public decimal Subtotal { get; set; }
+        public int Stock { get; set; }
+        public decimal? PriceAfterDiscount { get; set; }
+        public bool IsFreeShipping { get; set; }
     }
 }

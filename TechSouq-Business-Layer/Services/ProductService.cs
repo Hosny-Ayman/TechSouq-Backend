@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -20,15 +21,24 @@ namespace TechSouq.Application.Services
         private readonly ILogger<ProductService> _logger;
         private readonly IProductQueryService _productQueryService;
         private readonly IDistributedCache _cash;
+        private readonly IConnectionMultiplexer _redis;
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, ILogger<ProductService> logger, IProductQueryService productQueryService, IDistributedCache distributedCache)
+        public ProductService(
+              IProductRepository productRepository,
+              IMapper mapper,
+              ILogger<ProductService> logger,
+              IProductQueryService productQueryService,
+              IDistributedCache distributedCache,
+              IConnectionMultiplexer redis
+              ) 
         {
             _productRepository = productRepository;
             _mapper = mapper;
             _logger = logger;
             _productQueryService = productQueryService;
             _cash = distributedCache;
-           
+            _redis = redis;
+
         }
 
         public async Task<OperationResult<int>> AddProduct(ProductDto productDto)
@@ -70,7 +80,7 @@ namespace TechSouq.Application.Services
             return OperationResult<ProductDto>.Success(productDto);
         }
 
-        public async Task<OperationResult<PagedResponse<ProductDto>>> GetProductsPaged(int PageNumber,int PageSize, string? searchTerm = null, string? Catogrie = null)
+        public async Task<OperationResult<PagedResponse<ProductDto>>> GetProductsPaged(int PageNumber, int PageSize, string? searchTerm = null, string? Catogrie = null)
         {
             if (PageNumber <= 0 && PageSize <= 0)
             {
@@ -80,7 +90,7 @@ namespace TechSouq.Application.Services
 
             var CashKey = $"Product_Page_{PageNumber}_size_{PageSize}_search_{searchTerm}_cat_{Catogrie}";
 
-            var cachedData = _cash.GetString(CashKey);
+            var cachedData = await _cash.GetStringAsync(CashKey);
 
             if (!string.IsNullOrEmpty(cachedData))
             {
@@ -89,24 +99,32 @@ namespace TechSouq.Application.Services
                 return OperationResult<PagedResponse<ProductDto>>.Success(cachedProducts);
             }
 
-
-
             var products = await _productQueryService.GetProductsPaged(PageNumber, PageSize, searchTerm, Catogrie);
 
-            if (products.Data.Count() == 0 )
+            if (products.Data.Count() == 0)
             {
                 _logger.LogWarning("Products Not Found PageNumber: {PageNumber} , PageSize: {PageSize} ", PageNumber, PageSize);
                 return OperationResult<PagedResponse<ProductDto>>.NotFound("Product not found or already deleted.");
             }
 
-
             var cacheOptions = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
             var jsonData = JsonSerializer.Serialize(products);
             await _cash.SetStringAsync(CashKey, jsonData, cacheOptions);
 
-
             _logger.LogInformation("Result products Get Successfully");
             return OperationResult<PagedResponse<ProductDto>>.Success(products);
+        }
+
+        public async Task RunDailyDiscountCleanupJob()
+        {
+            int updatedRows = await _productRepository.RemoveAllExpiredDiscountsAsync();
+
+            if (updatedRows > 0)
+            {
+                var keys = await ClearProductPagesCache.ClearProductPagesCacheAsync(_redis);
+
+                _logger.LogInformation($"Hangfire Job Executed: Removed discounts for {updatedRows} products and cleared {keys} cache keys.");
+            }
         }
 
         public async Task<OperationResult<bool>> UpdateProduct(ProductDto productDto)

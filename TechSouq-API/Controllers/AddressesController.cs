@@ -68,5 +68,21 @@ namespace TechSouq.API.Controllers
             var result = await _addressService.GetAddressAsync(AddressId, userId);
             return this.ToHttpResponse(result);
         }
+
+        [HttpGet("GetOnlyDefaultAddress")]
+        public async Task<IActionResult> GetOnlyDefaultAddress()
+        {
+            var userId = User.GetUserId();
+            var result = await _addressService.GetOnlyDefaultAddress(userId);
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpGet("GetCityShippingCost")]
+        public async Task<IActionResult> GetCityShippingCost(string? CityName)
+        {
+            var userId = User.GetUserId();
+            var result = await _addressService.GetCityShippingCost(userId, CityName);
+            return this.ToHttpResponse(result);
+        }
     }
 }

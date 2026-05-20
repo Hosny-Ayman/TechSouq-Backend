@@ -46,6 +46,36 @@ namespace TechSouq.Application.Services
             return OperationResult<int>.Success(productReviewId);
         }
 
+        public async Task<OperationResult<bool>> CanUserReviewProductAsync(int userId, int productId)
+        {
+            if (productId <= 0)
+            {
+                _logger.LogWarning(" Review Failed - User Enter ProductId Under 1 ({productId})", productId);
+                return OperationResult<bool>.BadRequest("Invalid ProductId");
+            }
+
+            var CanUserReview = await _ProductReview.CanUserReviewProductAsync(userId, productId);
+
+            _logger.LogInformation("Can User Review Product UserId: {UserId} Successfully", userId);
+            return OperationResult<bool>.Success(CanUserReview);
+        }
+
+        public async Task<OperationResult<int?>> CanUserEditHisReview(int productId, int userId)
+        {
+            if (productId <= 0)
+            {
+                _logger.LogWarning(" Edit Failed - User Enter ProductId Under 1 ({productId})", productId);
+                return OperationResult<int?>.BadRequest("Invalid ProductId");
+            }
+
+            var CanUserReview = await _ProductReview.CanUserEditHisReview(productId, userId);
+
+           
+                _logger.LogInformation("Can User Edit Review Product UserId: {UserId} Successfully", userId);
+                return OperationResult<int?>.Success(CanUserReview);
+          
+        }
+
         public async Task<OperationResult<bool>> UpdateReviewAsync(ProductReviewDto productReviewDto)
         {
             if (productReviewDto.Id <= 0)

@@ -26,6 +26,10 @@ namespace TechSouq.Application.Extensions
             services.AddScoped<TokenService>();
             services.AddScoped<ProductReviewService>();
             services.AddScoped<PaymentService>();
+            services.AddScoped<DeliveryZoneService>();
+            services.AddScoped<SystemSettingsService>();
+            services.AddScoped<CouponService>();
+            services.AddScoped<PaymentWayService>();
 
 
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);

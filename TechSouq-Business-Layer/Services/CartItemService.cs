@@ -31,20 +31,27 @@ namespace TechSouq.Application.Services
         public async Task<OperationResult<int>> AddCartItem(int userId,CartItemDto cartItemDto)
         {
             var cartItem = _mapper.Map<CartItem>(cartItemDto);
-            bool IsSaved = false;
+            bool IscartitemExists = false;
 
             var userCart = await _cartRepository.GetCartIdbyUserId(userId);
 
             if(userCart != null)
             {
-                cartItem.CartId = userCart.Id;
+                
 
-                IsSaved = await _cartItemRepository.AddOrUpdateCartItemAsync(cartItem.CartId, cartItem.ProductId);
+                IscartitemExists = await _cartItemRepository.UpdateCartItem(cartItem.CartId, cartItem.ProductId);
 
-                if (!IsSaved)
+                if (!IscartitemExists)
                 {
-                    _logger.LogError("Failed to add cartItems to the database");
-                    return OperationResult<int>.Failure();
+                    cartItem.CartId = userCart.Id;
+
+                   var ISaved = await _cartItemRepository.AddCartItem(cartItem);
+
+                    if(ISaved==0)
+                    {
+                        _logger.LogError("Failed to add cartItems to the database");
+                        return OperationResult<int>.Failure();
+                    }
                 }
             }
             else
@@ -65,7 +72,7 @@ namespace TechSouq.Application.Services
             var cartItemsLength = await _cartItemRepository.GetCartItemsLengthAsync(userCart.Id);
             
 
-            _logger.LogInformation("Item added Successfully. ProductId: {ProductId}", cartItemDto.ProductId);
+            _logger.LogInformation("ItemDto added Successfully. ProductId: {ProductId}", cartItemDto.ProductId);
             return OperationResult<int>.Success(cartItemsLength);
         }
 

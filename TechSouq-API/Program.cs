@@ -1,12 +1,16 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
+using StackExchange.Redis;
+using Stripe;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -15,10 +19,9 @@ using TechSouq.API.Extensions;
 using TechSouq.API.Policies;
 using TechSouq.Application;
 using TechSouq.Application.Extensions;
+using TechSouq.Application.Queries;
 using TechSouq.Infrastructure.Data;
 using TechSouq.Infrastructure.Extensions;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Stripe;
 
 namespace TechSouq_API
 {
@@ -43,6 +46,8 @@ namespace TechSouq_API
                 .CreateLogger();
 
             Log.Information("Program Work Good");
+
+
 
             try
             {
@@ -82,8 +87,16 @@ namespace TechSouq_API
                 }
                 return Task.CompletedTask;
             }
-        };
-    });
+          };
+        });
+
+                builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(ConnectionString)); 
+
+                builder.Services.AddHangfireServer();
 
                 builder.Services.AddAuthorization(options =>
                 {
@@ -121,6 +134,9 @@ namespace TechSouq_API
                     options.Configuration = builder.Configuration.GetConnectionString("Redis");
                     options.InstanceName = "TechSouq_"; 
                 });
+
+                builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 
                 StripeConfiguration.ApiKey = builder.Configuration["StripeSettings:SecretKey"];
 
@@ -182,6 +198,7 @@ namespace TechSouq_API
                     app.UseSwaggerUI();
                 }
 
+
                 app.UseHttpsRedirection();
 
                 app.UseCors("TechSouqCorsPolicy");
@@ -193,6 +210,13 @@ namespace TechSouq_API
                 app.UseRateLimiter();
 
                 app.MapControllers();
+
+
+                app.UseHangfireDashboard("/hangfire");
+                RecurringJob.AddOrUpdate<TechSouq.Application.Services.ProductService>(
+                    "Remove-Expired-Discounts-Job",
+                    service => service.RunDailyDiscountCleanupJob(),
+                    Cron.Daily);
 
                 app.Run();
             }

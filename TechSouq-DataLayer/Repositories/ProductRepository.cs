@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,6 +48,19 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<bool> IsProductExists(int productId)
         {
             return await _appDbContext.Products.AnyAsync(x => x.Id == productId);
+        }
+
+        public async Task<int> RemoveAllExpiredDiscountsAsync()
+        {
+            int updatedRows = await _appDbContext.Products
+         .Where(p => p.DiscountEndDate != null && p.DiscountEndDate <= DateTime.UtcNow)
+         .ExecuteUpdateAsync(setters => setters
+             .SetProperty(p => p.PriceAfterDiscount, p => null)
+             .SetProperty(p => p.DiscountStartDate, p => null)
+             .SetProperty(p => p.DiscountEndDate, p => null)
+         );
+
+            return updatedRows;
         }
 
        

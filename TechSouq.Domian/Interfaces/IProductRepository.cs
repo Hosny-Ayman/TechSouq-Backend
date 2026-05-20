@@ -11,6 +11,6 @@ namespace TechSouq.Domain.Interfaces
         Task<bool> UpdateProduct(Product product);
         Task<bool> DeleteProduct(int productId);
         Task<bool> IsProductExists(int productId);
-        
+        Task<int> RemoveAllExpiredDiscountsAsync();
     }
 }

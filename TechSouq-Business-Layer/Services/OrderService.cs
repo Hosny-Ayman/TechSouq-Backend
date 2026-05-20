@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
 
@@ -13,12 +14,17 @@ namespace TechSouq.Application.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
+        private readonly ICartRepository _cartRepository;
+        private readonly IOrderQueryService _orderQueryService;
 
-        public OrderService(IOrderRepository orderRepository, IMapper mapper, ILogger<OrderService> logger)
+        public OrderService(IOrderRepository orderRepository, IMapper mapper, ILogger<OrderService> logger,
+            ICartRepository cartRepository, IOrderQueryService orderQueryService)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
             _logger = logger;
+            _cartRepository = cartRepository;
+            _orderQueryService = orderQueryService;
         }
 
         public async Task<OperationResult<int>> AddOrder(OrderDto orderDto)
@@ -70,6 +76,32 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Result Id: {Id} Get Successfully", orderId);
             return OperationResult<OrderDto>.Success(orderDto);
+        }
+
+        public async Task<OperationResult<List<OrderSummarieDto>>> GetOrderSummaryAsync(int userId)
+        {
+
+            var userCart = await _cartRepository.GetCartIdbyUserIdAnyStatus(userId);
+
+            if (userCart == null)
+            {
+                _logger.LogWarning("No Items Found With userId: {userId}", userId);
+                return OperationResult<List<OrderSummarieDto>>.NotFound("Cart not found or empty.");
+            }
+
+
+            var orders = await _orderQueryService.GetOrderSummaryAsync(userCart.Id, userId);
+
+            //if (order == null)
+            //{
+            //    _logger.LogWarning("Order With id: {OrderId} Not Found Or Deleted", orderId);
+            //    return OperationResult<OrderDto>.NotFound("Order not found or already deleted.");
+            //}
+
+           
+
+            _logger.LogInformation("Orders Get Successfully For userId:{userId}", userId);
+            return OperationResult<List<OrderSummarieDto>>.Success(orders);
         }
 
         public async Task<OperationResult<bool>> UpdateOrder(OrderDto orderDto)

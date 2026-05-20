@@ -16,9 +16,9 @@ namespace TechSouq.Application.Validators
            .GreaterThan(0)
            .WithMessage("ProductId must be greater than 0");
 
-            RuleFor(x => x.UserId)
-                .GreaterThan(0)
-                .WithMessage("UserId must be greater than 0");
+            //RuleFor(x => x.UserId)
+            //    .GreaterThan(0)
+            //    .WithMessage("UserId must be greater than 0");
 
             RuleFor(x => x.Comment)
                 .NotEmpty().WithMessage("Comment is required")

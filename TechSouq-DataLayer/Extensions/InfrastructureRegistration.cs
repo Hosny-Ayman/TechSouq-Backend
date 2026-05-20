@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TechSouq.Application.Queries;
+using TechSouq.Application.Services;
 using TechSouq.DataLayer.Repositories;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Domian.Interfaces;
-using TechSouq.Infrastructure.Repositories;
-using TechSouq.Application.Queries;
 using TechSouq.Infrastructure.Queries;
-using TechSouq.Application.Services;
+using TechSouq.Infrastructure.Repositories;
+using TechSouq.Infrastructure.Services;
 
 
 namespace TechSouq.Infrastructure.Extensions
@@ -32,6 +33,12 @@ namespace TechSouq.Infrastructure.Extensions
             services.AddScoped<ICartItemsQueryService, CartItemsQueryService>();
             services.AddScoped<IProductReview, ProductReviewRepository>();
             services.AddScoped<IProductReviewQueryService, ProductReviewQueryService>();
+            services.AddScoped<IDeliveryZone, DeliveryZoneRepository>();
+            services.AddScoped<ISystemSettingsRepository, SystemSettingsRepository>();
+            services.AddScoped<ICouponRepository, CouponRepository>();
+            services.AddScoped<IPaymentWayRepository, PaymentWayRepository>();
+            services.AddScoped<IOrderQueryService, OrderQueryService>();
+            services.AddScoped<IEmailService, EmailService>();
 
 
             return services;

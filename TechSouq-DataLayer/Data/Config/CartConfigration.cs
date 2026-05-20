@@ -19,9 +19,6 @@ namespace TechSouq.Infrastructure.Data.Config
 
             builder.HasKey(x => x.Id);
 
-            builder.HasOne(x => x.User).WithOne(x => x.cart).HasForeignKey<Cart>(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(x => x.UserId).IsUnique();
 
             builder.Property(x => x.Status).IsRequired();
 

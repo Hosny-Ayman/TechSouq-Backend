@@ -17,6 +17,7 @@ namespace TechSouq.Application.Dtos
         public int ProductId { get; set; }
         public int UserId { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? UserFullName { get; set; }
 
     }
 }

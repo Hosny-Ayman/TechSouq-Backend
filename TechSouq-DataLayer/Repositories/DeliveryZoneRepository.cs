@@ -18,19 +18,28 @@ namespace TechSouq.Infrastructure.Repositories
             _appDbContext = appDbContext;
         }
 
-        public Task<int> AddDeliveryZone(DeliveryZone DeliveryZone)
+        public async Task<int> AddDeliveryZone(DeliveryZone DeliveryZone)
         {
-            throw new NotImplementedException();
+            _appDbContext.DeliveryZones.Add(DeliveryZone);
+
+            var save = await _appDbContext.SaveChangesAsync();
+
+            return save > 0 ? DeliveryZone.Id : 0;
         }
 
-        public Task<bool> DeleteDeliveryZone(int DeliveryZoneId)
+        public async Task<bool> DeleteDeliveryZone(int DeliveryZoneId)
         {
-            throw new NotImplementedException();
+            return await _appDbContext.DeliveryZones.Where(x => x.Id == DeliveryZoneId).ExecuteDeleteAsync() > 0;
         }
 
-        public Task<ICollection<DeliveryZone>> GetAllDeliveryZones()
+        public async Task<ICollection<DeliveryZone>> GetAllDeliveryZones()
         {
-            throw new NotImplementedException();
+            return await _appDbContext.DeliveryZones.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<decimal> GetOnlyShippingCost(string ShippingCity)
+        {
+            return await _appDbContext.DeliveryZones.AsNoTracking().Where(x=>x.Name == ShippingCity).Select(x=>x.ShippingCost).FirstOrDefaultAsync();
         }
 
         public Task<bool> UpdateDeliveryZone(DeliveryZone DeliveryZone)

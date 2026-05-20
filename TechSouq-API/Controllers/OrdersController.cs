@@ -45,6 +45,15 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
+        [HttpGet("GetOrderSummary")]
+        public async Task<IActionResult> GetOrderSummary()
+        {
+            var userId = User.GetUserId();
+
+            var result = await _OrderService.GetOrderSummaryAsync(userId);
+            return this.ToHttpResponse(result);
+        }
+
         [Authorize(Roles = "Admin")] 
         [HttpPut("UpdateStatus")]
         public async Task<IActionResult> UpdateOrderStatus(OrderDto OrderDto)

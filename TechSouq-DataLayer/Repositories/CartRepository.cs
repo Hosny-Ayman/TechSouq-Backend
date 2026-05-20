@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
+using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Infrastructure.Data;
 
@@ -58,11 +59,34 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task<Cart> GetCartIdbyUserId(int userId)
         {
-            var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+            var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId&&x.Status==CartStatus.Active);
 
             return Cart;
 
             
+        }
+
+        public async Task<Cart> GetCartIdbyUserIdAnyStatus(int userId)
+        {
+            var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+
+            return Cart;
+
+
+        }
+
+        public async Task<bool> ChangeCartStatus(int CartId, CartStatus cartStatus)
+        {
+            var cart = await _appDbContext.Carts.FindAsync(CartId);
+
+            if (cart is null)
+                return false;
+
+            cart.Status = cartStatus;
+
+            await _appDbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }

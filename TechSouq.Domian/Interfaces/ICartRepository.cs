@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
+using TechSouq.Domain.Enums;
 
 namespace TechSouq.Domain.Interfaces
 {
@@ -20,5 +21,9 @@ namespace TechSouq.Domain.Interfaces
         Task<bool> IsCartExists(int CartId);
 
         Task<Cart> GetCartIdbyUserId(int userId);
+
+        Task<bool> ChangeCartStatus(int CartId, CartStatus cartStatus);
+
+        Task<Cart> GetCartIdbyUserIdAnyStatus(int userId);
     }
 }

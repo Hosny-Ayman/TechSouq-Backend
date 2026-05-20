@@ -30,7 +30,7 @@ namespace TechSouq.Infrastructure.Queries
                 query = query.AsNoTracking();
             }
 
-           var data = await query.Where(item=> item.Cart.UserId == UserId)
+           var data = await query.Where(item=> item.Cart.UserId == UserId && item.Cart.Status == Domain.Enums.CartStatus.Active)
                       .Select(item=> new CartItemsWithProductDetailsDto
                       {
                           CartId = item.Cart.Id,
@@ -40,7 +40,10 @@ namespace TechSouq.Infrastructure.Queries
                           ProductImage = item.Product.ProductImages.Select(img=>img.ImageUrl).FirstOrDefault(), 
                           ProductPrice = item.Product.Price,
                           Quantity = item.Quantity,
-                          Subtotal = item.Quantity * item.Product.Price
+                          PriceAfterDiscount = item.Product.PriceAfterDiscount,
+                          IsFreeShipping = item.Product.IsFreeShipping,
+                          Subtotal = item.Quantity *(item.Product.PriceAfterDiscount ?? item.Product.Price),
+                          Stock = item.Product.Stock,
                       }).ToListAsync();
 
             return data;

@@ -16,11 +16,13 @@ namespace TechSouq.Domain.Entities
         public string Password { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
 
         public int RoleId { get; set; }
         public Role Role { get; set; }
 
-        public Cart cart {get;set;}
+        public ICollection<Cart> carts {get;set;}
 
         public ICollection<Address> Addresses { get;set; }
 

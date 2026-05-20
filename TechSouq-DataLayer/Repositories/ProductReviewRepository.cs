@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using TechSouq.Domain.Entities;
+using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Infrastructure.Data;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -50,12 +52,34 @@ namespace TechSouq.Infrastructure.Repositories
             return productReview.Id;
         }
 
+        public async Task<int?> CanUserEditHisReview(int productId,int userId)
+        {
+            return await _context.ProductReview.AsNoTracking().Where(x => x.UserId == userId
+                && x.ProductId == productId).Select(x => (int?)x.Id).FirstOrDefaultAsync();
+
+        }
+
+        public async Task<bool> CanUserReviewProductAsync(int userId,int productId)
+        {
+            var hasPurchased = await _context.OrderItems
+     .AsNoTracking()
+     .AnyAsync(x =>  x.ProductId == productId &&x.Order.UserId == userId && x.Order.Status == OrderStatus.Delivered);
+
+            if (!hasPurchased)
+                return false;
+
+            var alreadyReviewed = await _context.ProductReview.AsNoTracking().AnyAsync(x => x.UserId == userId && x.ProductId == productId);
+
+            return !alreadyReviewed;
+
+        }
+
         public async Task<bool> UpdateReviewAsync(ProductReview productReview)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             var review = await _context.ProductReview
-                .FirstOrDefaultAsync(x => x.Id == productReview.Id);
+                .FirstOrDefaultAsync(x => x.Id == productReview.Id && x.UserId == productReview.UserId);
 
             if (review == null || review.ProductId != productReview.ProductId)
             {
@@ -89,5 +113,6 @@ namespace TechSouq.Infrastructure.Repositories
 
             return true;
         }
+        
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
+using Google.Apis.Auth; 
 
 namespace TechSouq.Application.Services
 {
@@ -14,13 +15,15 @@ namespace TechSouq.Application.Services
         private readonly ILogger<AuthService> _logger;
         private readonly IMapper _mapper;
         private readonly TokenService _tokenService;
+        private readonly IEmailService _EmailService;
 
-        public AuthService(IUserRepository userRepository, ILogger<AuthService> logger, IMapper mapper, TokenService tokenService)
+        public AuthService(IUserRepository userRepository, ILogger<AuthService> logger, IMapper mapper, TokenService tokenService, IEmailService emailService)
         {
             _userRepository = userRepository;
             _logger = logger;
             _mapper = mapper;
             _tokenService = tokenService;
+            _EmailService = emailService;
         }
 
         public async Task<OperationResult<int>> Register(RegisterDto registerDto)
@@ -174,5 +177,120 @@ namespace TechSouq.Application.Services
 
             return OperationResult<bool>.Success(true);
         }
+
+        public async Task<OperationResult<bool>> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(dto.Email,true);
+
+            if (user == null)
+            {
+                return OperationResult<bool>.Success(true);
+            }
+
+            var Token = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+
+            user.PasswordResetToken = Token;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+
+            await _userRepository.UpdateUser(user);
+
+            var resetLink = $"http://localhost:4200/Reset-Password?email={user.Email}&token={Token}";
+
+            await _EmailService.SendEmailAsync(user.Email, "Reset Your Password - TechSouq", $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>");
+
+            return OperationResult<bool>.Success(true);
+        }
+
+        public async Task<OperationResult<bool>> ResetPassword(ResetPasswordDto dto)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(dto.Email,true);
+            if (user == null)
+                return OperationResult<bool>.BadRequest("Invalid Request");
+
+            if (user.PasswordResetToken != dto.Token || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+            {
+                return OperationResult<bool>.BadRequest("Token is invalid or expired.");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword); 
+
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+
+            await _userRepository.UpdateUser(user);
+
+            return OperationResult<bool>.Success(true);
+        }
+
+
+      
+
+public async Task<OperationResult<LoginResponseDto>> GoogleLogin(GoogleLoginDto dto)
+    {
+        try
+        {
+            
+            var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken);
+
+            var user = await _userRepository.GetUserByEmailAsync(payload.Email, true);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = payload.Email,
+                    FirstName = payload.GivenName ?? "User",
+                    SecondName = payload.FamilyName ?? "Google",
+                    Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString() + "A1@a"),
+                    RoleId = 2 
+                };
+
+                var newId = await _userRepository.AddUser(user);
+                if (newId == 0) return OperationResult<LoginResponseDto>.Failure("Failed to create Google user.");
+                user.Id = newId;
+            }
+
+            var accessToken = _tokenService.GenerateToken(user);
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateUser(user);
+
+            var tokenDto = new TokenDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+
+            var userData = new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                SecondName = user.SecondName,
+                Email = user.Email,
+                RoleId = user.RoleId
+            };
+
+            var loginResponseDto = new LoginResponseDto
+            {
+                User = userData,
+                Token = tokenDto
+            };
+
+            _logger.LogInformation("User logged in successfully via Google: {Email}", payload.Email);
+            return OperationResult<LoginResponseDto>.Success(loginResponseDto, "Google Login successful.");
+        }
+        catch (InvalidJwtException ex)
+        {
+            _logger.LogWarning(ex, "Invalid Google Token.");
+            return OperationResult<LoginResponseDto>.BadRequest("Invalid Google authentication token.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Google login failed.");
+            return OperationResult<LoginResponseDto>.Failure("An error occurred during Google login.");
+        }
     }
+}
 }

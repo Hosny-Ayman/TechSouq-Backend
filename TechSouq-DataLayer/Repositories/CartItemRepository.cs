@@ -67,7 +67,7 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task<bool> UpdateCartItems(int userId, List<CartItem> cartItems)
         {
-            var userCart = await _appDbContext.Carts.FirstOrDefaultAsync(c => c.UserId == userId);
+            var userCart = await _appDbContext.Carts.FirstOrDefaultAsync(c => c.UserId == userId && c.Status == Domain.Enums.CartStatus.Active);
 
             if (userCart == null) return false;
 
@@ -106,27 +106,22 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task<bool> AddOrUpdateCartItemAsync(int CartId, int ProductId)
+        public async Task<bool> UpdateCartItem(int CartId, int ProductId)
         {
 
             var IscartitemExists = await _appDbContext.CartItems.FirstOrDefaultAsync(x => x.CartId == CartId && x.ProductId == ProductId);
+          
 
-            if(IscartitemExists != null)
+            if (IscartitemExists!=null)
             {
                 IscartitemExists.Quantity += 1;
+
+                return await _appDbContext.SaveChangesAsync() > 0;
             }
             else
             {
-
-                CartItem cartItem = new CartItem();
-                cartItem.CartId = CartId;
-                cartItem.ProductId = ProductId;
-
-                _appDbContext.CartItems.Add(cartItem);
+                return false;
             }
-
-
-            return await _appDbContext.SaveChangesAsync() > 0;
 
         }
 
@@ -150,6 +145,7 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<int> AddCartItems(List<CartItem> cartItems, Cart cart)
         {
 
+
             if (cartItems == null || !cartItems.Any()) return 0;
 
             if (cart.Id == 0)
@@ -165,17 +161,32 @@ namespace TechSouq.Infrastructure.Repositories
                 .Where(x => x.CartId == cartId)
                 .ToDictionaryAsync(x=>x.ProductId);
 
+             
+
             foreach (var item in cartItems)
             {
+               
 
                 if (existingItemsDict.TryGetValue(item.ProductId,out var existingItem))
                 {
+
+                    var productQuantity = await _appDbContext.Products.AsNoTracking().Where(x => x.Id == existingItem.ProductId).Select(x => x.Stock).FirstOrDefaultAsync();           
+
                     existingItem.Quantity += item.Quantity;
+
+                    if(existingItem.Quantity > productQuantity)
+                        existingItem.Quantity = productQuantity;
+
                 }
                 else
                 {
                     item.CartId = cartId;
-                    
+
+                    var productQuantity = await _appDbContext.Products.AsNoTracking().Where(x => x.Id == item.ProductId).Select(x => x.Stock).FirstOrDefaultAsync();
+
+                    if (item.Quantity > productQuantity)
+                        item.Quantity = productQuantity;
+
                     await _appDbContext.CartItems.AddAsync(item);
 
                     existingItemsDict.Add(item.ProductId, item);
@@ -188,11 +199,13 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task<decimal> GetCartItemsTotalAmounts(int cartId)
+        public async Task<decimal> GetCartItemsTotalAmounts(decimal ShippingCost, int cartId)
         {
-            var total = await _appDbContext.CartItems.Where(x => x.CartId == cartId).SumAsync(x => x.Product.Price * x.Quantity);
 
-            return total;
+            var total = await _appDbContext.CartItems.Where(x => x.CartId == cartId).SumAsync(x => (x.Product.PriceAfterDiscount ?? x.Product.Price) *  x.Quantity);
+
+            return total + ShippingCost;
         }
+
     }
 }

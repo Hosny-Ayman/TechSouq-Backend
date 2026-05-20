@@ -19,5 +19,7 @@ namespace TechSouq.Domain.Interfaces
 
         Task<bool> IsOrderItemExists(int OrderItemId);
 
+        Task<bool> AddOrderItems(List<OrderItem> orderItems);
+
     }
 }

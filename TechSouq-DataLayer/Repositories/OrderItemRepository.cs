@@ -29,6 +29,13 @@ namespace TechSouq.Infrastructure.Repositories
             return save > 0 ? orderItem.Id : 0;
         }
 
+        public async Task<bool> AddOrderItems(List<OrderItem> orderItems)
+        {
+            _appDbContext.OrderItems.AddRangeAsync(orderItems);
+
+            return await _appDbContext.SaveChangesAsync() > 0;
+        }
+
         public async Task<bool> DeleteOrderItem(int orderItemId)
         {
             return await _appDbContext.OrderItems.Where(x => x.Id == orderItemId).ExecuteDeleteAsync() > 0;
@@ -56,5 +63,7 @@ namespace TechSouq.Infrastructure.Repositories
         {
             return await _appDbContext.OrderItems.AnyAsync(x => x.Id == OrderItemId);
         }
+
+       
     }
 }

@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
-using TechSouq.Infrastructure.Data;
-using TechSouq.Domain.Interfaces;
 using TechSouq.Domain.Entities;
-using System.Reflection.Metadata.Ecma335;
+using TechSouq.Domain.Interfaces;
+using TechSouq.Infrastructure.Data;
 
 namespace TechSouq.Infrastructure.Repositories
 {
@@ -52,15 +52,47 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task <bool> DeleteAddress(int AddresId)
+        public async Task <bool> DeleteAddress(int AddresId , int userId )
         {
-           
 
-            
+            using var transaction = await _Context.Database.BeginTransactionAsync();
 
-            int Rowseffected = await _Context.Addresses.Where(x => x.Id == AddresId).ExecuteDeleteAsync();
+            try
+            {
+                var address = await _Context.Addresses
+                    .FirstOrDefaultAsync(x => x.Id == AddresId && x.UserId == userId);
 
-            return Rowseffected > 0;
+                if (address is null)
+                    return false;
+
+                bool wasDefault = address.Active;
+
+                _Context.Addresses.Remove(address);
+
+                await _Context.SaveChangesAsync();
+
+                if (wasDefault)
+                {
+                    var anotherAddress = await _Context.Addresses
+                        .FirstOrDefaultAsync(x => x.UserId == userId);
+
+                    if (anotherAddress != null)
+                    {
+                        anotherAddress.Active = true;
+
+                        await _Context.SaveChangesAsync();
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
         }
 
         public async Task <ICollection<Address>> GetAddresses(int UserId)
@@ -99,7 +131,6 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<bool> setAsDefaultAsync(int AddressId, int userId)
         {
 
-
            var effrow = await _Context.Addresses.Where(x=>x.UserId==userId).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.Active,a=>a.Id == AddressId));
 
             return effrow>0;
@@ -109,6 +140,34 @@ namespace TechSouq.Infrastructure.Repositories
         public async Task<int> HowManyAddressesHeHaveAsync(int userId)
         {
             return await _Context.Addresses.CountAsync(x => x.UserId == userId);
+        }
+
+        public async Task<Address> GetOnlyDefaultAddress(int userId)
+        {
+            return await _Context.Addresses.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId && x.Active);
+        }
+
+        public async Task<decimal> GetCityShippingCost(int userId,string? CityName)
+        {
+            if(CityName!=null)
+            {
+                return await _Context.DeliveryZones.AsNoTracking().Where(x => x.Name == CityName).Select(x => x.ShippingCost).FirstOrDefaultAsync();
+
+            }
+            else
+            {
+
+                var add = await _Context.Addresses.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId && x.Active);
+
+                if (add != null)
+                {
+                    return await _Context.DeliveryZones.AsNoTracking().Where(x => x.Name == add.City).Select(x => x.ShippingCost).FirstOrDefaultAsync();
+                }
+
+            }
+
+            return 0;
+           
         }
     }
 }

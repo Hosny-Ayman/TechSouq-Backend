@@ -12,7 +12,10 @@ namespace TechSouq.Domain.Interfaces
 
         Task<bool> UpdateReviewAsync(ProductReview ProductReview);
 
-       
+        Task<bool> CanUserReviewProductAsync(int userId, int productId);
+
+        Task<int?> CanUserEditHisReview(int productId, int userId);
+
 
         //Task<List<ProductReview>> GetAllReviewsForProductPaged(page);
     }

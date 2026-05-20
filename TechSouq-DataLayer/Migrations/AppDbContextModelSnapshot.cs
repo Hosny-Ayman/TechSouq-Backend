@@ -8,7 +8,7 @@ using TechSouq.Infrastructure.Data;
 
 #nullable disable
 
-namespace TechSouq_DataLayer.Migrations
+namespace TechSouq.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -143,8 +143,7 @@ namespace TechSouq_DataLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Carts", (string)null);
                 });
@@ -198,7 +197,7 @@ namespace TechSouq_DataLayer.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
-            modelBuilder.Entity("TechSouq.Domain.Entities.Coupons", b =>
+            modelBuilder.Entity("TechSouq.Domain.Entities.Coupon", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -261,16 +260,16 @@ namespace TechSouq_DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("CurrentShippingCost")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("ShippingCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("Id");
 
-                    b.ToTable("DeliveryZone");
+                    b.ToTable("DeliveryZones");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Order", b =>
@@ -281,50 +280,66 @@ namespace TechSouq_DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AddressId")
+                    b.Property<string>("Building")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CouponId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("DeliveryCost")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("DeliveryMethodId")
-                        .HasColumnType("int");
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("DeliveryZoneId")
-                        .HasColumnType("int");
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("OrderDate")
-                        .HasColumnType("DateTime");
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PaymentWayId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShippingCity")
                         .IsRequired()
-                        .HasColumnType("Nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ShippingGovernorate")
+                    b.Property<string>("ShippingFullName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShippingStreet")
                         .IsRequired()
-                        .HasColumnType("Nvarchar(250)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("Nvarchar(20)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("Decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AddressId");
+                    b.HasIndex("CouponId");
 
-                    b.HasIndex("DeliveryMethodId")
-                        .IsUnique();
-
-                    b.HasIndex("DeliveryZoneId");
+                    b.HasIndex("PaymentWayId");
 
                     b.HasIndex("UserId");
 
@@ -358,6 +373,23 @@ namespace TechSouq_DataLayer.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("TechSouq.Domain.Entities.PaymentWay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentWays");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Product", b =>
@@ -463,7 +495,6 @@ namespace TechSouq_DataLayer.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SettingKey")
@@ -498,6 +529,12 @@ namespace TechSouq_DataLayer.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(255)");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiry")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
@@ -555,9 +592,9 @@ namespace TechSouq_DataLayer.Migrations
             modelBuilder.Entity("TechSouq.Domain.Entities.Cart", b =>
                 {
                     b.HasOne("TechSouq.Domain.Entities.User", "User")
-                        .WithOne("cart")
-                        .HasForeignKey("TechSouq.Domain.Entities.Cart", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany("carts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -584,21 +621,15 @@ namespace TechSouq_DataLayer.Migrations
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("TechSouq.Domain.Entities.Address", "Address")
+                    b.HasOne("TechSouq.Domain.Entities.Coupon", "Coupon")
+                        .WithMany()
+                        .HasForeignKey("CouponId");
+
+                    b.HasOne("TechSouq.Domain.Entities.PaymentWay", "PaymentWay")
                         .WithMany("Orders")
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("PaymentWayId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("TechSouq.Domain.Entities.DeliveryMethod", "DeliveryMethod")
-                        .WithOne("order")
-                        .HasForeignKey("TechSouq.Domain.Entities.Order", "DeliveryMethodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TechSouq.Domain.Entities.DeliveryZone", "DeliveryZone")
-                        .WithMany("Order")
-                        .HasForeignKey("DeliveryZoneId");
 
                     b.HasOne("TechSouq.Domain.Entities.User", "User")
                         .WithMany("Orders")
@@ -606,11 +637,9 @@ namespace TechSouq_DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Address");
+                    b.Navigation("Coupon");
 
-                    b.Navigation("DeliveryMethod");
-
-                    b.Navigation("DeliveryZone");
+                    b.Navigation("PaymentWay");
 
                     b.Navigation("User");
                 });
@@ -675,11 +704,6 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("TechSouq.Domain.Entities.Address", b =>
-                {
-                    b.Navigation("Orders");
-                });
-
             modelBuilder.Entity("TechSouq.Domain.Entities.Brand", b =>
                 {
                     b.Navigation("Products");
@@ -695,20 +719,14 @@ namespace TechSouq_DataLayer.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("TechSouq.Domain.Entities.DeliveryMethod", b =>
-                {
-                    b.Navigation("order")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("TechSouq.Domain.Entities.DeliveryZone", b =>
-                {
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("TechSouq.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("TechSouq.Domain.Entities.PaymentWay", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("TechSouq.Domain.Entities.Product", b =>
@@ -735,8 +753,7 @@ namespace TechSouq_DataLayer.Migrations
 
                     b.Navigation("ProductReview");
 
-                    b.Navigation("cart")
-                        .IsRequired();
+                    b.Navigation("carts");
                 });
 #pragma warning restore 612, 618
         }

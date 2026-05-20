@@ -16,7 +16,7 @@ namespace TechSouq.Domain.Interfaces
 
         Task <bool> UpdateAddress(Address address);
 
-        Task <bool> DeleteAddress(int AddresId);
+        Task <bool> DeleteAddress(int AddresId, int userId);
 
         Task <Address> GetAddressById(int AddresId,int userId, bool trackingChanges = true);
 
@@ -25,6 +25,10 @@ namespace TechSouq.Domain.Interfaces
         Task<bool> setAsDefaultAsync(int AddressId, int userId);
 
         Task<int> HowManyAddressesHeHaveAsync(int userId);
+
+        Task<Address> GetOnlyDefaultAddress(int userId);
+
+        Task<decimal> GetCityShippingCost(int userId, string? CityName);
 
 
     }
