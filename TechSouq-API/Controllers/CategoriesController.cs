@@ -34,14 +34,15 @@ namespace TechSouq.API.Controllers
         {
             var result = await _categorieService.GetCategorie(CategorieId);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.ServerError => StatusCode(500, result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
+        }
+        
+        [HttpGet("GetAllCategorieForSelect")]
+        public async Task<IActionResult> GetAllCategorieForSelect()
+        {
+            var result = await _categorieService.GetAllCategorieForSelect();
+
+            return this.ToHttpResponse(result);
         }
         [AllowAnonymous]
         [HttpGet("GetAllCategoriesAsync")]
@@ -49,14 +50,7 @@ namespace TechSouq.API.Controllers
         {
             var result = await _categorieService.GetAllCategoriesPagedAsync(PageNumber, PageSize);
 
-            return result.Status switch
-            {
-                OperationStatus.Success => Ok(result),
-                OperationStatus.BadRequest => BadRequest(result),
-                OperationStatus.NotFound => NotFound(result),
-                OperationStatus.ServerError => StatusCode(500, result),
-                _ => StatusCode(500, result)
-            };
+            return this.ToHttpResponse(result);
         }
 
         [HttpPost("Update")]

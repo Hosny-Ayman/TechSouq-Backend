@@ -56,6 +56,14 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost("RegisterStaff")]
+        public async Task<IActionResult> RegisterStaff(RegisterDto dto, int roleId)
+        {
+            var result = await _authService.RegisterStaff(dto, roleId);
+            return this.ToHttpResponse(result);
+        }
+
         [EnableRateLimiting("StrictAuth")]
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginDto dto)
@@ -70,6 +78,21 @@ namespace TechSouq.API.Controllers
                 return Ok(OperationResult<object>.Success(result.Data.User));
             }
 
+            return this.ToHttpResponse(result);
+        }
+
+        [EnableRateLimiting("StrictAuth")]
+        [HttpPost("LoginAdmin")]
+        public async Task<IActionResult> LoginAdmin(LoginDto dto)
+        {
+            var result = await _authService.Login(dto, true);
+
+            if (result.IsSuccess)
+            {
+                SetRefreshTokenInCookie(result.Data.Token.RefreshToken);
+                SetAccessTokenInCookie(result.Data.Token.AccessToken);
+                return Ok(OperationResult<object>.Success(result.Data.User));
+            }
             return this.ToHttpResponse(result);
         }
 

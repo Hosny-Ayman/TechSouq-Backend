@@ -7,7 +7,7 @@ using TechSouq.Application.Dtos;
 
 namespace TechSouq.Application.Queries
 {
-    public interface ICartItemsQueryService
+    public interface ICartItemsQuery
     {
 
         Task<List<CartItemsWithProductDetailsDto>> GetAllCartItemsWithProductDetailsAsync(int UserId, bool trackingChanges = true);

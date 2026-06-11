@@ -198,10 +198,14 @@ namespace TechSouq_API
                     app.UseSwaggerUI();
                 }
 
+                app.UseCors("TechSouqCorsPolicy");
+
+
+                app.UseStaticFiles();
+
 
                 app.UseHttpsRedirection();
 
-                app.UseCors("TechSouqCorsPolicy");
 
                 app.UseAuthentication();
 

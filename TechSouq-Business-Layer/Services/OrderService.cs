@@ -3,8 +3,11 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Helper;
+using TechSouq.Application.interfaces;
 using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
+using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
 
 namespace TechSouq.Application.Services
@@ -15,10 +18,10 @@ namespace TechSouq.Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
         private readonly ICartRepository _cartRepository;
-        private readonly IOrderQueryService _orderQueryService;
+        private readonly IOrderQuery _orderQueryService;
 
         public OrderService(IOrderRepository orderRepository, IMapper mapper, ILogger<OrderService> logger,
-            ICartRepository cartRepository, IOrderQueryService orderQueryService)
+            ICartRepository cartRepository, IOrderQuery orderQueryService)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
@@ -92,7 +95,7 @@ namespace TechSouq.Application.Services
 
             var orders = await _orderQueryService.GetOrderSummaryAsync(userCart.Id, userId);
 
-            //if (order == null)
+            //if (isUpdate == null)
             //{
             //    _logger.LogWarning("Order With id: {OrderId} Not Found Or Deleted", orderId);
             //    return OperationResult<OrderDto>.NotFound("Order not found or already deleted.");
@@ -161,5 +164,64 @@ namespace TechSouq.Application.Services
             _logger.LogInformation("Delete OrderId: {OrderId} Successfully", orderId);
             return OperationResult<bool>.Success(result);
         }
+
+        public async Task<OperationResult<PagedResponse<AdminOrderListDto>>> GetAllOrdersPaged(int PageNumber, int PageSize, OrderStatus? status, string? search)
+        {
+            if (PageNumber <= 0 || PageSize <= 0)
+            {
+                _logger.LogWarning("Invalid data result PageNumber or PageSize under 0 or 0");
+                return OperationResult<PagedResponse<AdminOrderListDto>>.BadRequest("Invalid data", new List<string> { "Invalid data result PageNumber or PageSize under 0 or 0" });
+            }
+
+            var orders = await _orderQueryService.GetAllOrdersPaged(PageNumber, PageSize, status, search);
+
+
+            _logger.LogInformation("Result Get Orders Successfully");
+            return OperationResult<PagedResponse<AdminOrderListDto>>.Success(orders);
+        }
+
+        public async Task<OperationResult<AdminOrderDetailsDto>> GetOrderDtailsAdmin(int OrderId)
+        {
+            if (OrderId <= 0)
+            {
+                _logger.LogWarning("Invalid data");
+                return OperationResult<AdminOrderDetailsDto>.BadRequest("Invalid data", new List<string> { "Invalid data result PageNumber or PageSize under 0 or 0" });
+            }
+
+            var order = await _orderQueryService.GetOrderDtailsAdmin(OrderId);
+
+            if(order == null)
+            {
+                _logger.LogWarning("Order with Id: {Id} not found or Deleted", OrderId);
+                return OperationResult<AdminOrderDetailsDto>.NotFound($"Id: {OrderId} not found");
+               
+            }
+            _logger.LogInformation("Result Get Order Successfully");
+            return OperationResult<AdminOrderDetailsDto>.Success(order);
+
+        }
+
+        public async Task<OperationResult<bool>> UpdateStatus(int OrderId, OrderStatus Status)
+        {
+            if (OrderId <= 0 || Status == null)
+            {
+                _logger.LogWarning("Invalid data");
+                return OperationResult<bool>.BadRequest("Invalid data", new List<string> { "Invalid data OrderId under 0 or 0 or Status null" });
+            }
+
+            var isUpdate = await _orderRepository.UpdateStatus(OrderId, Status);
+
+            if (isUpdate == false)
+            {
+                _logger.LogWarning("Update isUpdate Status with Id: {Id} failed or not found", OrderId);
+                return OperationResult<bool>.NotFound($"Id: {OrderId} failed or not found");
+
+            }
+            _logger.LogInformation("Result Get Order Successfully");
+            return OperationResult<bool>.Success(isUpdate);
+
+        }
+
+        
     }
 }

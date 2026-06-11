@@ -19,34 +19,34 @@ namespace TechSouq.API.Controllers
         {
             _productService = productService;
         }
-        
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreateProduct(ProductDto productDto)
-        {
-            var result = await _productService.AddProduct(productDto);
 
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreateProduct([FromForm] CreateUpdateProductDto dto)
+        {
+            var result = await _productService.AddProduct(dto);
             return this.ToHttpResponse(result);
         }
         [AllowAnonymous]
         [HttpGet("Get")]
-        public async Task<IActionResult> GetProduct(int productId)
+        public async Task<IActionResult> GetProduct(int productId,bool? deatils =false)
         {
-            var result = await _productService.GetProductById(productId);
+            var result = await _productService.GetProductById(productId, deatils);
 
             return this.ToHttpResponse(result);
         }
 
         [AllowAnonymous]
         [HttpGet("GetProductsPaged")]
-        public async Task<IActionResult> GetProductsPaged(int PageNumber, int PageSize, string? searchTerm = null, string? Catogrie = null)
+        public async Task<IActionResult> GetProductsPaged(int PageNumber, int PageSize, string? searchTerm = null,
+            string? Catogrie = null,bool? bypassCache=false, bool? deatails = false)
         {
-            var result = await _productService.GetProductsPaged(PageNumber, PageSize, searchTerm, Catogrie);
+            var result = await _productService.GetProductsPaged(PageNumber, PageSize, searchTerm, Catogrie, bypassCache, deatails);
 
             return this.ToHttpResponse(result);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateProduct(ProductDto productDto)
+        public async Task<IActionResult> UpdateProduct([FromForm] CreateUpdateProductDto productDto)
         {
             var result = await _productService.UpdateProduct(productDto);
 

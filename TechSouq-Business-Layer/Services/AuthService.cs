@@ -31,6 +31,7 @@ namespace TechSouq.Application.Services
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
             var newUser = _mapper.Map<User>(registerDto);
             newUser.Password = hashedPassword;
+            newUser.RoleId = 2;
 
             var newId = await _userRepository.AddUser(newUser);
 
@@ -44,14 +45,33 @@ namespace TechSouq.Application.Services
             return OperationResult<int>.Success(newId, "User registered successfully.");
         }
 
-        public async Task<OperationResult<LoginResponseDto>> Login(LoginDto loginDto)
+        public async Task<OperationResult<int>> RegisterStaff(RegisterDto registerDto, int roleId)
+        {
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+            var newUser = _mapper.Map<User>(registerDto);
+            newUser.Password = hashedPassword;
+
+            newUser.RoleId = roleId;
+
+            var newId = await _userRepository.AddUser(newUser);
+            if (newId == 0) return OperationResult<int>.Failure("Failed to create staff user.");
+
+            return OperationResult<int>.Success(newId, "Staff created successfully.");
+        }
+
+        public async Task<OperationResult<LoginResponseDto>> Login(LoginDto loginDto, bool isStaffLogin = false)
         {
             var user = await _userRepository.GetUserByEmailAsync(loginDto.Email, true);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
             {
                 _logger.LogWarning("Login failed for email: {Email}.", loginDto.Email);
-                return OperationResult<LoginResponseDto>.BadRequest("Invalid Email or OldPassword.");
+                return OperationResult<LoginResponseDto>.BadRequest("Invalid Email or Password.");
+            }
+
+            if (isStaffLogin && user.RoleId == 2)
+            {
+                return OperationResult<LoginResponseDto>.BadRequest("Access denied");
             }
 
             var accessToken = _tokenService.GenerateToken(user);
@@ -73,7 +93,7 @@ namespace TechSouq.Application.Services
                 RefreshToken = refreshToken
             };
 
-            var userData = new UserDto
+            var userData = new UserDetailsDto
             {
                 Id = user.Id,
                 FirstName = user.FirstName,
@@ -263,7 +283,7 @@ public async Task<OperationResult<LoginResponseDto>> GoogleLogin(GoogleLoginDto 
                 RefreshToken = refreshToken
             };
 
-            var userData = new UserDto
+            var userData = new UserDetailsDto
             {
                 Id = user.Id,
                 FirstName = user.FirstName,

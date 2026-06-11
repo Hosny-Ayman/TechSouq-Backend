@@ -67,7 +67,7 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task<bool> UpdateCartItems(int userId, List<CartItem> cartItems)
         {
-            var userCart = await _appDbContext.Carts.FirstOrDefaultAsync(c => c.UserId == userId && c.Status == Domain.Enums.CartStatus.Active);
+            var userCart = await _appDbContext.Carts.FirstOrDefaultAsync(c => c.UserId == userId && c.Status == Domain.Enums.SystemEnums.Active);
 
             if (userCart == null) return false;
 

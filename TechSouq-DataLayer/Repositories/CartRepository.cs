@@ -59,7 +59,7 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task<Cart> GetCartIdbyUserId(int userId)
         {
-            var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId&&x.Status==CartStatus.Active);
+            var Cart = await _appDbContext.Carts.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId&&x.Status==SystemEnums.Active);
 
             return Cart;
 
@@ -75,7 +75,7 @@ namespace TechSouq.Infrastructure.Repositories
 
         }
 
-        public async Task<bool> ChangeCartStatus(int CartId, CartStatus cartStatus)
+        public async Task<bool> ChangeCartStatus(int CartId, SystemEnums cartStatus)
         {
             var cart = await _appDbContext.Carts.FindAsync(CartId);
 

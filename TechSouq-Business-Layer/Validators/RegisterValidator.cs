@@ -17,13 +17,13 @@ namespace TechSouq.Application.Validators
                 .EmailAddress().WithMessage("A valid Email is required.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("OldPassword should not be empty.")
-                .MinimumLength(8).WithMessage("OldPassword should not be less than 8 characters.")
-                .MaximumLength(30).WithMessage("OldPassword should not be more than 30 characters.")
-                .Matches("[A-Z]").WithMessage("OldPassword must contain at least one uppercase letter.")
-                .Matches("[a-z]").WithMessage("OldPassword must contain at least one lowercase letter.")
-                .Matches("[0-9]").WithMessage("OldPassword must contain at least one number.")
-                .Matches("[^a-zA-Z0-9]").WithMessage("OldPassword must contain at least one special character (e.g. @, #, $, %).");
+                .NotEmpty().WithMessage("Password should not be empty.")
+                .MinimumLength(8).WithMessage("Password should not be less than 8 characters.")
+                .MaximumLength(30).WithMessage("Password should not be more than 30 characters.")
+                .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+                .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+                .Matches("[0-9]").WithMessage("Password must contain at least one number.")
+                .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character (e.g. @, #, $, %).");
 
             RuleFor(x => x.RoleId)
                 .GreaterThan(0).WithMessage("RoleId should be valid.");

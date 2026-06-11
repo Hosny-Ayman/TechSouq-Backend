@@ -35,6 +35,12 @@ namespace TechSouq.Application.Mappings
             CreateMap<SystemSettings, SystemSettingDto>().ReverseMap();
             CreateMap<Coupon, GetCouponDto>().ReverseMap();
             CreateMap<PaymentWay, PaymentWayDto>().ReverseMap();
+            CreateMap<ProductDto, CreateUpdateProductDto>().ReverseMap();
+                //.ForMember(dest=>dest.FirstImage,opt=>opt.Ignore())
+                //.ForMember(dest => dest.AverageRating, opt => opt.Ignore())
+                //.ForMember(dest => dest.TotalReviews, opt => opt.Ignore());
+            CreateMap<Product, CreateUpdateProductDto>().ReverseMap();
+
         }
 
     }

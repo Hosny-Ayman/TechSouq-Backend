@@ -8,9 +8,10 @@ namespace TechSouq.Domain.Interfaces
     {
         Task<int> AddProduct(Product product);
         Task<Product> GetProduct(int productId, bool trackingChanges = true);
-        Task<bool> UpdateProduct(Product product);
-        Task<bool> DeleteProduct(int productId);
+        Task<bool> UpdateProduct(Product product, bool? IsTraking = true);
+        Task<bool> DeleteProduct(int productId, List<string> imagesToRemove);
         Task<bool> IsProductExists(int productId);
         Task<int> RemoveAllExpiredDiscountsAsync();
+        void RemvoeProductImages(List<ProductImage> imagesToDelete);
     }
 }

@@ -41,7 +41,15 @@ namespace TechSouq.API.Controllers
 
             return this.ToHttpResponse(result);
         }
-     
+
+        [HttpGet("GetAllBrands")]
+        public async Task<IActionResult> GetAllBrands()
+        {
+            var result = await _brandService.GetAllBrands();
+
+            return this.ToHttpResponse(result);
+        }
+
         [HttpPut("Update")]
         public async Task<IActionResult> UpdateBrand(BrandDto Brand)
         {

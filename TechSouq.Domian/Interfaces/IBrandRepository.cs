@@ -20,6 +20,8 @@ namespace TechSouq.Domian.Interfaces
 
         Task<bool> IsBrandExists(int CartItemId);
 
+        Task<List<Brand>> GetAllBrands();
+
 
 
     }

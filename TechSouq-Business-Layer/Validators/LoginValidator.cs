@@ -12,9 +12,9 @@ namespace TechSouq.Application.Validators
                 .EmailAddress().WithMessage("A valid Email is required.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("OldPassword should not be empty.")
-                .MinimumLength(8).WithMessage("OldPassword should not be less than 8 characters.")
-                .MaximumLength(30).WithMessage("OldPassword should not be more than 30 characters.");
+                .NotEmpty().WithMessage("Password should not be empty.");
+                //.MinimumLength(8).WithMessage("OldPassword should not be less than 8 characters.")
+                //.MaximumLength(30).WithMessage("OldPassword should not be more than 30 characters.");
         }
     }
 }

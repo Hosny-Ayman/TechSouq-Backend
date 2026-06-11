@@ -17,10 +17,10 @@ namespace TechSouq.Application.Services
         private readonly ICategorieRepository _categorieRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CategorieService> _logger;
-        private readonly ICategorieQueryService _queryService;
+        private readonly ICategorieQuery _queryService;
         private readonly IDistributedCache _cache;
 
-        public CategorieService(ICategorieRepository categorieRepository, IMapper mapper, ILogger<CategorieService> logger, ICategorieQueryService queryService, IDistributedCache cache)
+        public CategorieService(ICategorieRepository categorieRepository, IMapper mapper, ILogger<CategorieService> logger, ICategorieQuery queryService, IDistributedCache cache)
         {
             _categorieRepository = categorieRepository;
             _mapper = mapper;
@@ -64,6 +64,14 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Result Id: {Id} Get Successfully", categorieId);
             return OperationResult<CategorieDto>.Success(categorieDto);
+        }
+
+        public async Task<OperationResult<List<CategorieSelectorDto>>> GetAllCategorieForSelect()
+        {
+            var categories = await _queryService.GetAllCategorieForSelect();
+
+            _logger.LogInformation("Get AllCategorie For Select Successfully");
+            return OperationResult<List<CategorieSelectorDto>>.Success(categories);
         }
 
         public async Task<OperationResult<PagedResponse<CategorieDto>>> GetAllCategoriesPagedAsync(int PageNumber,int PageSize)

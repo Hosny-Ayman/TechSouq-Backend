@@ -10,7 +10,7 @@ namespace TechSouq.Application.Dtos
 
         public int UserId { get; set; }
        
-        public CartStatus Status { get; set; }
+        public SystemEnums Status { get; set; }
       
     }
 

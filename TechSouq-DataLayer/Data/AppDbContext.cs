@@ -53,6 +53,8 @@ namespace TechSouq.Infrastructure.Data
             base.OnModelCreating(modelbuilder);
             modelbuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+            modelbuilder.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
+
         }
     }
 

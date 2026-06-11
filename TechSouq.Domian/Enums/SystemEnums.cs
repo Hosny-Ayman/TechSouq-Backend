@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TechSouq.Domain.Enums
 {
-    public enum CartStatus
+    public enum SystemEnums
     {
         Active=1,
         CheckedOut=2,

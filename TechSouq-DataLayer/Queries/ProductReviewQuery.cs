@@ -18,14 +18,14 @@ using AutoMapper.QueryableExtensions;
 
 namespace TechSouq.Infrastructure.Queries
 {
-    public class ProductReviewQueryService:IProductReviewQueryService
+    public class ProductReviewQuery:IProductReviewQuery
     {
 
         private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
 
 
-        public ProductReviewQueryService(AppDbContext context , IMapper mapper)
+        public ProductReviewQuery(AppDbContext context , IMapper mapper)
         {
             _appDbContext = context;
             _mapper = mapper;

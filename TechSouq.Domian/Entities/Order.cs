@@ -10,8 +10,8 @@ namespace TechSouq.Domain.Entities
 
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
+        public string? PaymentIntentId { get; set; }
 
-        
         public decimal SubTotal { get; set; }
 
         public decimal DiscountAmount { get; set; } = 0;

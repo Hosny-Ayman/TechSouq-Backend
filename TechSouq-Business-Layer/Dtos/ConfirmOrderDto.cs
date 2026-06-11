@@ -18,7 +18,8 @@ namespace TechSouq.Application.Dtos
         public string Phone { get; set; }
         public string ShippingFullName { get; set; }
         public int PaymentWayId { get; set; }
-        
+        public string? PaymentIntentId { get; set; }
+
 
     }
 }

@@ -22,7 +22,7 @@ namespace TechSouq.Domain.Interfaces
 
         Task<Cart> GetCartIdbyUserId(int userId);
 
-        Task<bool> ChangeCartStatus(int CartId, CartStatus cartStatus);
+        Task<bool> ChangeCartStatus(int CartId, SystemEnums cartStatus);
 
         Task<Cart> GetCartIdbyUserIdAnyStatus(int userId);
     }

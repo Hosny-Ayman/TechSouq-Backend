@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TechSouq.Domain.Entities;
+using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Infrastructure.Data;
 
@@ -61,5 +62,14 @@ namespace TechSouq.Infrastructure.Repositories
             return await _appDbContext.Orders.AnyAsync(x => x.Id == OrderId && x.UserId == UserId);
 
         }
+
+        public async Task<bool> UpdateStatus(int OrderId,OrderStatus Status)
+        {
+            var roweff = await _appDbContext.Orders.Where(x => x.Id == OrderId).ExecuteUpdateAsync(x => x.SetProperty(p => p.Status, Status));
+
+            return roweff > 0;
+        }
+
+
     }
 }

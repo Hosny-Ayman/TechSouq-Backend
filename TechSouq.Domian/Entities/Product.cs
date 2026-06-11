@@ -8,6 +8,7 @@
         public string Description { get; set; }
         public int Stock { get; set; }
         public decimal Price { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public decimal AverageRating { get; set; }
         public int TotalReviews { get; set; }
@@ -26,7 +27,7 @@
         public Brand Brand { get; set; }
 
 
-        public ICollection<ProductImage> ProductImages { get; set; }
+        public List<ProductImage> ProductImages { get; set; }
 
         public ICollection<OrderItem> OrderItems { get; set; }
 

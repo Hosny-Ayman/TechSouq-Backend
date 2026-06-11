@@ -9,7 +9,7 @@ namespace TechSouq.Application.Dtos
     public class LoginResponseDto
     {
 
-        public UserDto User { get; set; }
+        public UserDetailsDto User { get; set; }
         public TokenDto Token { get; set; }
 
     }

@@ -304,6 +304,9 @@ namespace TechSouq.Infrastructure.Migrations
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PaymentIntentId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("PaymentWayId")
                         .HasColumnType("int");
 
@@ -418,6 +421,9 @@ namespace TechSouq.Infrastructure.Migrations
 
                     b.Property<DateTime?>("DiscountStartDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFreeShipping")
                         .HasColumnType("bit");

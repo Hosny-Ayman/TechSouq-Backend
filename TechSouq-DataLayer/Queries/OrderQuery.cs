@@ -9,15 +9,18 @@ using TechSouq.Domain.Entities;
 using TechSouq.Domain.Enums;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Infrastructure.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Order = TechSouq.Domain.Entities.Order;
 
 namespace TechSouq.Infrastructure.Queries
 {
-    public class OrderQueryService : IOrderQueryService
+    public class OrderQuery : IOrderQuery
     {
         private readonly AppDbContext _appDbContext;
         private readonly ICouponRepository _couponRepository;
-        private readonly ICartItemsQueryService _cartItemsQueryService;
+        private readonly ICartItemsQuery _cartItemsQueryService;
         private readonly IMapper _mapper;
         private readonly IOrderItemRepository _OrderItemRepository;
         private readonly IOrderRepository _OrderRepository;
@@ -26,8 +29,8 @@ namespace TechSouq.Infrastructure.Queries
 
         private bool isAnyProductOutofStock = false;
 
-        public OrderQueryService(AppDbContext appDbContext,ICouponRepository couponRepository,
-            ICartItemsQueryService cartItemsQueryService, IMapper mapper, IOrderItemRepository orderItemRepository, 
+        public OrderQuery(AppDbContext appDbContext,ICouponRepository couponRepository,
+            ICartItemsQuery cartItemsQueryService, IMapper mapper, IOrderItemRepository orderItemRepository, 
             IOrderRepository orderRepository, ICartRepository CartRepository
             , IConnectionMultiplexer redis)
         {
@@ -41,7 +44,7 @@ namespace TechSouq.Infrastructure.Queries
             _redis = redis;
         }
 
-        public async Task<decimal> ConfirmOrderAsync(ConfirmOrderDto confirmOrderDto,int cartId, int userId)
+        public async Task<decimal> ConfirmOrderAsync(ConfirmOrderDto confirmOrderDto,int cartId, int userId,bool calculateOnly = false)
         {
             await using var transAction = await _appDbContext.Database.BeginTransactionAsync();
 
@@ -65,6 +68,7 @@ namespace TechSouq.Infrastructure.Queries
                     Building = confirmOrderDto.Building,
                     PaymentWayId = confirmOrderDto.PaymentWayId,
                     Country = confirmOrderDto.Country,
+                    PaymentIntentId = confirmOrderDto.PaymentIntentId,
 
                     UserId = userId,
 
@@ -104,6 +108,11 @@ namespace TechSouq.Infrastructure.Queries
                  
 
                 order.TotalAmount =(order.SubTotal + order.DeliveryCost) - (order.DiscountAmount);
+
+                if(calculateOnly ==true)
+                {
+                    return order.TotalAmount;
+                }
 
                 var OrderId = await _OrderRepository.AddOrder(order);
 
@@ -161,7 +170,7 @@ namespace TechSouq.Infrastructure.Queries
                     await transAction.RollbackAsync();
                     return 0;
                 }
-                var IsChanged = await _CartRepository.ChangeCartStatus(cartitemsAndProductDetils[0].CartId, CartStatus.CheckedOut);
+                var IsChanged = await _CartRepository.ChangeCartStatus(cartitemsAndProductDetils[0].CartId, SystemEnums.CheckedOut);
 
                 if (!IsChanged)
                 {
@@ -277,10 +286,77 @@ namespace TechSouq.Infrastructure.Queries
                     Quantity = o.Quantity,
                 }).ToList()
 
-            }).ToListAsync();
+            }).IgnoreQueryFilters().ToListAsync();
 
             return Orders;
         }
+
+        public async Task<PagedResponse<AdminOrderListDto>> GetAllOrdersPaged(int PageNumber, int PageSize, OrderStatus? status, string? search)
+        {
+            var query = _appDbContext.Orders.AsQueryable();
+
+
+            if(status!=null)
+            {
+                query = query.Where(x => x.Status == status);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(x => x.ShippingFullName.Contains(search));
+            }
+
+
+            var totalRecords = await query.CountAsync();
+
+
+            var data = await query.AsNoTracking().OrderByDescending(x=>x.OrderDate).Skip((PageNumber - 1) * PageSize).Take(PageSize).Select(x=> new AdminOrderListDto {
+                Id = x.Id,
+                CustomerName = x.ShippingFullName,
+                Date = x.OrderDate,
+                Status = x.Status,
+                TotalAmount = x.TotalAmount,
+            }).IgnoreQueryFilters().ToListAsync();
+
+            return new PagedResponse<AdminOrderListDto>(data, totalRecords, PageNumber, PageSize);
+
+
+        }
+
+        public async Task<AdminOrderDetailsDto?> GetOrderDtailsAdmin(int OrderId)
+        {
+            return await _appDbContext.Orders.AsNoTracking().Where(x=>x.Id == OrderId).Select(o=>new AdminOrderDetailsDto {
+                Id = o.Id,
+                Date=o.OrderDate,
+                Status=o.Status,
+                DeliveryAddress= $"{o.ShippingCity} ,{o.ShippingStreet},{o.Country}",
+                UserId = o.UserId,
+                CustomerName = o.ShippingFullName,
+                CustomerEmail = o.Email,
+                CustomerPhone = o.Phone,
+                Subtotal = o.SubTotal,
+                DeliveryCost = o.DeliveryCost,
+                DiscountAmount = o.DiscountAmount,
+                TotalAmount = o.TotalAmount,
+                PaymentWayId = o.PaymentWayId,
+                StripePaymentIntentId = o.PaymentIntentId,
+                Items = o.OrderItems.Select(s=> new AdminOrderItemDto {
+                ProductId = s.ProductId,
+                Name = s.Product.Name,
+                Image = s.Product.ProductImages.Select(x=>x.ImageUrl).FirstOrDefault(),
+                Price = s.Product.Price,
+                Quantity=s.Quantity,
+
+                }).ToList()
+
+
+
+            }).FirstOrDefaultAsync();
+
+           
+        }
+
         
+
     }
 }

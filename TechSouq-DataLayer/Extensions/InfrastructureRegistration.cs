@@ -28,17 +28,18 @@ namespace TechSouq.Infrastructure.Extensions
             services.AddScoped<IProductImageRepository, ProductImageRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IProductQueryService, ProductQueryService>();
-            services.AddScoped<ICategorieQueryService, CategorieQueryService>();
-            services.AddScoped<ICartItemsQueryService, CartItemsQueryService>();
+            services.AddScoped<IProductQuery, ProductQuery>();
+            services.AddScoped<ICategorieQuery, CategorieQuery>();
+            services.AddScoped<ICartItemsQuery, CartItemsQuery>();
             services.AddScoped<IProductReview, ProductReviewRepository>();
-            services.AddScoped<IProductReviewQueryService, ProductReviewQueryService>();
+            services.AddScoped<IProductReviewQuery, ProductReviewQuery>();
             services.AddScoped<IDeliveryZone, DeliveryZoneRepository>();
             services.AddScoped<ISystemSettingsRepository, SystemSettingsRepository>();
             services.AddScoped<ICouponRepository, CouponRepository>();
             services.AddScoped<IPaymentWayRepository, PaymentWayRepository>();
-            services.AddScoped<IOrderQueryService, OrderQueryService>();
+            services.AddScoped<IOrderQuery, OrderQuery>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IDashboardQuery, DashboardQuery>();
 
 
             return services;

@@ -57,5 +57,10 @@ namespace TechSouq.DataLayer.Repositories
         {
             return await _AppDbContext.Brands.AnyAsync(x => x.Id == CartItemId);
         }
+
+        public async Task<List<Brand>> GetAllBrands()
+        {
+            return await _AppDbContext.Brands.AsNoTracking().ToListAsync();
+        }
     }
 }

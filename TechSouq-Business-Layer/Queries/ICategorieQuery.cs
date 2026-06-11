@@ -8,9 +8,13 @@ using TechSouq.Application.Helper;
 
 namespace TechSouq.Application.Queries
 {
-    public interface IProductReviewQueryService
+    public interface ICategorieQuery
     {
 
-        Task<PagedResponse<ProductReviewDto>> GetAllReviewsPagedAsync(int pageNumber, int pageSize,int ProductId);
+        Task <PagedResponse<CategorieDto>> GetAllCategoriePaged(int pageNumber, int pageSize);
+
+        Task<List<CategorieSelectorDto>> GetAllCategorieForSelect();
+
+
     }
 }

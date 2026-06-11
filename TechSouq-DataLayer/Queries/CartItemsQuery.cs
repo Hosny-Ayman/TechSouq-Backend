@@ -11,12 +11,12 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TechSouq.Infrastructure.Queries
 {
-    public class CartItemsQueryService : ICartItemsQueryService
+    public class CartItemsQuery : ICartItemsQuery
     {
 
         private readonly AppDbContext _appDbContext;
 
-        public CartItemsQueryService(AppDbContext AppDbContext)
+        public CartItemsQuery(AppDbContext AppDbContext)
         {
             _appDbContext = AppDbContext;
         }
@@ -30,7 +30,7 @@ namespace TechSouq.Infrastructure.Queries
                 query = query.AsNoTracking();
             }
 
-           var data = await query.Where(item=> item.Cart.UserId == UserId && item.Cart.Status == Domain.Enums.CartStatus.Active)
+           var data = await query.Where(item=> item.Cart.UserId == UserId && item.Cart.Status == Domain.Enums.SystemEnums.Active)
                       .Select(item=> new CartItemsWithProductDetailsDto
                       {
                           CartId = item.Cart.Id,

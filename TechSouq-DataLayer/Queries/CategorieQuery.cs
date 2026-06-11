@@ -13,15 +13,25 @@ using TechSouq.Infrastructure.Data;
 
 namespace TechSouq.Infrastructure.Queries
 {
-    public class CategorieQueryService : ICategorieQueryService
+    public class CategorieQuery : ICategorieQuery
     {
         private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
 
-        public CategorieQueryService(AppDbContext appDbContext, IMapper mapper)
+        public CategorieQuery(AppDbContext appDbContext, IMapper mapper)
         {
             _appDbContext = appDbContext;
             _mapper = mapper;
+        }
+
+        public async Task<List<CategorieSelectorDto>> GetAllCategorieForSelect()
+        {
+           return await _appDbContext.Categories.AsNoTracking().Select(x => new CategorieSelectorDto
+            {
+                Id = x.Id,
+                Name = x.Name
+
+            }).ToListAsync();
         }
 
         public async Task<PagedResponse<CategorieDto>> GetAllCategoriePaged(int pageNumber, int pageSize)
@@ -37,5 +47,7 @@ namespace TechSouq.Infrastructure.Queries
             return new PagedResponse<CategorieDto>(AllData, TotalRecords, pageNumber, pageSize);
 
         }
+
+        
     }
 }

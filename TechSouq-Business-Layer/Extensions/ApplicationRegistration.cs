@@ -30,7 +30,7 @@ namespace TechSouq.Application.Extensions
             services.AddScoped<SystemSettingsService>();
             services.AddScoped<CouponService>();
             services.AddScoped<PaymentWayService>();
-
+            services.AddScoped<DashboardService>();
 
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
 

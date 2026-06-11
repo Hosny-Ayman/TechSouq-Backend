@@ -10,7 +10,7 @@ namespace TechSouq.Domain.Entities
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public CartStatus Status { get; set; } = CartStatus.Active;
+        public SystemEnums Status { get; set; } = SystemEnums.Active;
 
         public ICollection<CartItem> CartItems { get; set; }
     }

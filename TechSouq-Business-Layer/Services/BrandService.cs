@@ -59,6 +59,16 @@ namespace TechSouq.Application.Services
             return OperationResult<BrandDto>.Success(brandDto);
         }
 
+        public async Task<OperationResult<List<BrandDto>>> GetAllBrands()
+        {
+            var Brands = await _brandRepository.GetAllBrands();
+
+            var BrandsDto = _mapper.Map<List<BrandDto>>(Brands);
+
+            _logger.LogInformation("Get Brands Successfully");
+            return OperationResult<List<BrandDto>>.Success(BrandsDto);
+        }
+
         public async Task<OperationResult<bool>> UpdateBrand(BrandDto brandDto)
         {
             if (brandDto.Id <= 0)

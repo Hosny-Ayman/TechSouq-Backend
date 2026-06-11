@@ -17,9 +17,9 @@ namespace TechSouq.Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<CartItemService> _logger;
         private readonly ICartRepository _cartRepository;
-        private readonly ICartItemsQueryService _cartItemsQueryService;
+        private readonly ICartItemsQuery _cartItemsQueryService;
 
-        public CartItemService(ICartItemRepository cartItemRepository, IMapper mapper, ILogger<CartItemService> logger, ICartRepository cartRepository, ICartItemsQueryService cartItemsQueryService)
+        public CartItemService(ICartItemRepository cartItemRepository, IMapper mapper, ILogger<CartItemService> logger, ICartRepository cartRepository, ICartItemsQuery cartItemsQueryService)
         {
             _cartItemRepository = cartItemRepository;
             _mapper = mapper;

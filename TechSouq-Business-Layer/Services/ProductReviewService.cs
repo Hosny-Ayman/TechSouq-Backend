@@ -20,9 +20,9 @@ namespace TechSouq.Application.Services
         private readonly IProductReview _ProductReview;
         private readonly ILogger<ProductReviewDto> _logger;
         private readonly IMapper _mapper;
-        private readonly IProductReviewQueryService _productReviewQueryService;
+        private readonly IProductReviewQuery _productReviewQueryService;
 
-        public ProductReviewService(IProductReview productReview , ILogger<ProductReviewDto> logger, IMapper mapper, IProductReviewQueryService productReviewQueryService)
+        public ProductReviewService(IProductReview productReview , ILogger<ProductReviewDto> logger, IMapper mapper, IProductReviewQuery productReviewQueryService)
         {
             _ProductReview = productReview;
             _logger = logger;
