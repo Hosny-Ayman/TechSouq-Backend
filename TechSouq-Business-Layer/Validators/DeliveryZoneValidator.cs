@@ -16,8 +16,8 @@ namespace TechSouq.Application.Validators
             RuleFor(x => x.Name)
                .NotEmpty().WithMessage("Name Should Not Empty");
 
-            RuleFor(x => x.CurrentShippingCost)
-              .GreaterThanOrEqualTo(1).WithMessage("CurrentShippingCost Should Not be under 1");
+            RuleFor(x => x.ShippingCost)
+              .GreaterThanOrEqualTo(1).WithMessage("ShippingCost Should Not be under 1");
         }
 
     }

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>TechSouq.API</RootNamespace>
+    <UserSecretsId>dbf65218-2a49-41d8-a7f0-0dbb71751adf</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

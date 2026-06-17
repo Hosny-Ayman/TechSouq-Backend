@@ -18,6 +18,7 @@ namespace TechSouq.Domain.Entities
         public DateTime RefreshTokenExpiryTime { get; set; }
         public string? PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpiry { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public int RoleId { get; set; }
         public Role Role { get; set; }

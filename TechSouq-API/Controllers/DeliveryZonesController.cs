@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Stripe;
 using TechSouq.API.Extensions;
 using TechSouq.Application.Dtos;
 using TechSouq.Application.Services;
+using TechSouq.Domain.Entities;
 
 namespace TechSouq.API.Controllers
 {
@@ -41,6 +43,33 @@ namespace TechSouq.API.Controllers
         public async Task<IActionResult> GetOnlyShippingCost(string ShippingCity)
         {
             var result = await _deliveryZoneService.GetOnlyShippingCost(ShippingCity);
+            return this.ToHttpResponse(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("GetAllDeliveryZonesPaged")]
+        public async Task<IActionResult> GetAllDeliveryZonesPaged(int pageNumber, int pageSize, string? NameSearch)
+        {
+            var result = await _deliveryZoneService.GetAllDeliveryZonesPaged(pageNumber, pageSize, NameSearch);
+
+            return this.ToHttpResponse(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("UpdateDeliveryZone")]
+        public async Task<IActionResult> UpdateDeliveryZone(DeliveryZone DeliveryZone)
+        {
+            var result = await _deliveryZoneService.UpdateDeliveryZone(DeliveryZone);
+
+            return this.ToHttpResponse(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("DeleteDeliveryZone")]
+        public async Task<IActionResult> DeleteDeliveryZone(int DeliveryZoneId)
+        {
+            var result = await _deliveryZoneService.DeleteDeliveryZone(DeliveryZoneId);
+
             return this.ToHttpResponse(result);
         }
 

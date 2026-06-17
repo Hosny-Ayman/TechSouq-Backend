@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -59,7 +60,7 @@ namespace TechSouq.Application.Services
                 return OperationResult<bool>.NotFound("Setting Not Found");
             }
 
-            var SystemSetting = _mapper.Map<SystemSettings>(dto);
+            _mapper.Map(dto, setting);
 
             var result = await _repository.Update(setting);
 
@@ -109,6 +110,15 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Setting Key Get by Key:{Key} Successfully", Key);
             return OperationResult<SystemSettingDto>.Success(SystemSettingDto);
+        }
+
+        public async Task<OperationResult<List<SystemSettings>>> GetAllSystemSettings()
+        {
+
+            var data = await _repository.GetAllSystemSettings();
+
+            _logger.LogInformation("GetAllSystemSettings Successfully");
+            return OperationResult<List<SystemSettings>>.Success(data);
         }
     }
 

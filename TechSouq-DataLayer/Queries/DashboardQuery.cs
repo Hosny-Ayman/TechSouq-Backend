@@ -56,7 +56,7 @@ namespace TechSouq.Infrastructure.Queries
 
         }
 
-        public async Task<PagedResponse<RecentOrderDto>> RecentSales(RecentSaleceQueryParams queryParams)
+        public async Task<PagedResponse<RecentOrderDto>> RecentSales(IRecentSaleceQueryParams queryParams)
         {
             var query = _appDbContext.OrderItems.AsNoTracking().AsQueryable();
 

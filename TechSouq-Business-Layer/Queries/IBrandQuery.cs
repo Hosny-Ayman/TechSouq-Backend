@@ -8,11 +8,9 @@ using TechSouq.Application.Helper;
 
 namespace TechSouq.Application.Queries
 {
-    public interface ICartItemsQuery
+    public interface IBrandQuery
     {
-
-        Task<List<CartItemsWithProductDetailsDto>> GetAllCartItemsWithProductDetailsAsync(int UserId, bool trackingChanges = true);
-
+        Task<PagedResponse<BrandDto>> GetAllBrandsPaged(int pageNumber, int pageSize);
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,11 @@ namespace TechSouq.Infrastructure.Repositories
     public class DeliveryZoneRepository : IDeliveryZone
     {
         private readonly AppDbContext _appDbContext;
-        public DeliveryZoneRepository(AppDbContext appDbContext) {
+        private readonly IMapper _mapper;
+        public DeliveryZoneRepository(AppDbContext appDbContext, IMapper mapper) {
 
             _appDbContext = appDbContext;
+            _mapper = mapper;
         }
 
         public async Task<int> AddDeliveryZone(DeliveryZone DeliveryZone)
@@ -25,6 +28,12 @@ namespace TechSouq.Infrastructure.Repositories
             var save = await _appDbContext.SaveChangesAsync();
 
             return save > 0 ? DeliveryZone.Id : 0;
+        }
+
+        public async Task<DeliveryZone?> GetById(int id)
+        {
+            return await _appDbContext.DeliveryZones.AsNoTracking()
+              .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<bool> DeleteDeliveryZone(int DeliveryZoneId)
@@ -42,9 +51,22 @@ namespace TechSouq.Infrastructure.Repositories
             return await _appDbContext.DeliveryZones.AsNoTracking().Where(x=>x.Name == ShippingCity).Select(x=>x.ShippingCost).FirstOrDefaultAsync();
         }
 
-        public Task<bool> UpdateDeliveryZone(DeliveryZone DeliveryZone)
+        public async Task<bool> UpdateDeliveryZone(DeliveryZone DeliveryZone)
         {
-            throw new NotImplementedException();
+            var existingDeliveryZone = await _appDbContext.DeliveryZones.FindAsync(DeliveryZone.Id);
+
+            if(existingDeliveryZone is null)
+                return false;
+
+
+            existingDeliveryZone.Name = DeliveryZone.Name;
+            existingDeliveryZone.ShippingCost = DeliveryZone.ShippingCost;
+
+             await _appDbContext.SaveChangesAsync();
+
+            return true;
+
+
         }
     }
 }

@@ -68,5 +68,32 @@ namespace TechSouq.API.Controllers
             var result = await _userService.DeleteUser(id);
             return this.ToHttpResponse(result);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("GetAllCustomersPaged")]
+        public async Task<IActionResult> GetAllCustomersPaged(int pageNumber, int pageSize, string? EmailSearch)
+        {
+            var result = await _userService.GetAllCustomersPaged(pageNumber, pageSize, EmailSearch);
+
+            return this.ToHttpResponse(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("GetCustomerDetails")]
+        public async Task<IActionResult> GetCustomerDetails(int customerId)
+        {
+            var result = await _userService.GetCustomerDetails(customerId);
+
+            return this.ToHttpResponse(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("IsActive")]
+        public async Task<IActionResult> IsActive(int customerId)
+        {
+            var result = await _userService.IsActive(customerId);
+
+            return this.ToHttpResponse(result);
+        }
     }
 }

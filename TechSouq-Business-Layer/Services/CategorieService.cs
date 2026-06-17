@@ -74,7 +74,7 @@ namespace TechSouq.Application.Services
             return OperationResult<List<CategorieSelectorDto>>.Success(categories);
         }
 
-        public async Task<OperationResult<PagedResponse<CategorieDto>>> GetAllCategoriesPagedAsync(int PageNumber,int PageSize)
+        public async Task<OperationResult<PagedResponse<CategorieDto>>> GetAllCategoriesPagedAsync(int PageNumber,int PageSize,bool RealTimeData = false)
         {
             //if (categorieId <= 0)
             //{
@@ -82,16 +82,24 @@ namespace TechSouq.Application.Services
             //    return OperationResult<CategorieDto>.BadRequest("Invalid data", new List<string> { $"Invalid data result Id: {categorieId}" });
             //}
 
-            string cacheKey = $"Categories_Page_{PageNumber}_Size_{PageSize}";
+            string cacheKey ="";
+            string cachedData;
 
-            var cachedData = await _cache.GetStringAsync(cacheKey);
-
-            if (!string.IsNullOrEmpty(cachedData))
+            if (!RealTimeData)
             {
-                var cachedCategories = JsonSerializer.Deserialize<PagedResponse<CategorieDto>>(cachedData);
-                _logger.LogInformation("Get categories from Cache Successfully");
-                return OperationResult<PagedResponse<CategorieDto>>.Success(cachedCategories);
+                cacheKey = $"Categories_Page_{PageNumber}_Size_{PageSize}";
+
+                cachedData = await _cache.GetStringAsync(cacheKey);
+
+                if (!string.IsNullOrEmpty(cachedData))
+                {
+                    var cachedCategories = JsonSerializer.Deserialize<PagedResponse<CategorieDto>>(cachedData);
+                    _logger.LogInformation("Get categories from Cache Successfully");
+                    return OperationResult<PagedResponse<CategorieDto>>.Success(cachedCategories);
+                }
             }
+
+            
 
             var Allcategories = await _queryService.GetAllCategoriePaged(PageNumber, PageSize);
 
@@ -101,14 +109,16 @@ namespace TechSouq.Application.Services
                 return OperationResult<PagedResponse<CategorieDto>>.NotFound("There is No categories");
             }
 
-           
-            var cacheOptions = new DistributedCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromHours(1)); 
 
-            var jsonData = JsonSerializer.Serialize(Allcategories);
-            await _cache.SetStringAsync(cacheKey, jsonData, cacheOptions);
+            if (!RealTimeData)
+            {
 
+                var cacheOptions = new DistributedCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromHours(1));
 
+                var jsonData = JsonSerializer.Serialize(Allcategories);
+                await _cache.SetStringAsync(cacheKey, jsonData, cacheOptions);
+            }
 
             _logger.LogInformation("Get  categories Successfully");
             return OperationResult<PagedResponse<CategorieDto>>.Success(Allcategories);

@@ -58,7 +58,16 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
-       
+        
+        [HttpGet("GetAllBrandsPaged")]
+        public async Task<IActionResult> GetAllBrandesPagedAsync(int PageNumber, int PageSize, bool RealTimeData = false)
+        {
+            var result = await _brandService.GetAllBrandesPagedAsync(PageNumber, PageSize, RealTimeData);
+
+            return this.ToHttpResponse(result);
+        }
+
+
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteBrand(int BrandId)
         {

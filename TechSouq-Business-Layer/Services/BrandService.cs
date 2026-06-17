@@ -1,25 +1,34 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Helper;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
 using TechSouq.Domian.Interfaces; 
+
 
 namespace TechSouq.Application.Services
 {
     public class BrandService
     {
         private readonly IBrandRepository _brandRepository;
+        private readonly IBrandQuery _brandQuery;
         private readonly IMapper _mapper;
         private readonly ILogger<BrandService> _logger;
+        private readonly IDistributedCache _cache;
 
-        public BrandService(IBrandRepository brandRepository, IMapper mapper, ILogger<BrandService> logger)
+        public BrandService(IBrandRepository brandRepository, IMapper mapper, ILogger<BrandService> logger, IDistributedCache cache, IBrandQuery brandQuery)
         {
             _brandRepository = brandRepository;
             _mapper = mapper;
             _logger = logger;
+            _cache = cache;
+            _brandQuery = brandQuery;
         }
 
         public async Task<OperationResult<int>> AddBrand(BrandDto brandDto)
@@ -67,6 +76,48 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Get Brands Successfully");
             return OperationResult<List<BrandDto>>.Success(BrandsDto);
+        }
+
+        public async Task<OperationResult<PagedResponse<BrandDto>>> GetAllBrandesPagedAsync(int PageNumber, int PageSize, bool RealTimeData = false)
+        {
+
+            string cacheKey = "";
+            string cachedData;
+
+            if (!RealTimeData)
+            {
+                cacheKey = $"Categories_Page_{PageNumber}_Size_{PageSize}";
+
+                cachedData = await _cache.GetStringAsync(cacheKey);
+
+                if (!string.IsNullOrEmpty(cachedData))
+                {
+                    var cachedBrands = JsonSerializer.Deserialize<PagedResponse<BrandDto>>(cachedData);
+                    _logger.LogInformation("Get categories from Cache Successfully");
+                    return OperationResult<PagedResponse<BrandDto>>.Success(cachedBrands);
+                }
+            }
+
+            var AllBrands = await _brandQuery.GetAllBrandsPaged(PageNumber, PageSize);
+
+            if (AllBrands == null)
+            {
+                _logger.LogWarning("There is No Brands");
+                return OperationResult<PagedResponse<BrandDto>>.NotFound("There is No Brands");
+            }
+
+            if (!RealTimeData)
+            {
+
+                var cacheOptions = new DistributedCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromHours(1));
+
+                var jsonData = JsonSerializer.Serialize(AllBrands);
+                await _cache.SetStringAsync(cacheKey, jsonData, cacheOptions);
+            }
+
+            _logger.LogInformation("Get  Brands Successfully");
+            return OperationResult<PagedResponse<BrandDto>>.Success(AllBrands);
         }
 
         public async Task<OperationResult<bool>> UpdateBrand(BrandDto brandDto)

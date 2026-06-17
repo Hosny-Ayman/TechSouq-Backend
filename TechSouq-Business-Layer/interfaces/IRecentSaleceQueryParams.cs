@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TechSouq.Application.interfaces
 {
-    public class RecentSaleceQueryParams
+    public class IRecentSaleceQueryParams
     {
 
         public int PageNumber { get; set; } = 1;

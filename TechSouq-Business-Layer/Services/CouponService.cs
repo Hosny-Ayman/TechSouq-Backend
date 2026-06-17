@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using TechSouq.Application.Dtos;
+using TechSouq.Application.Helper;
+using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Interfaces;
 
@@ -10,17 +12,20 @@ namespace TechSouq.Application.Services
     {
 
         private readonly ICouponRepository _repository;
+        private readonly ICouponsQuery _CouponsQuery;
         private readonly IMapper _mapper;
         private readonly ILogger<CouponService> _logger;
 
         public CouponService(
             ICouponRepository repository,
             IMapper mapper,
-            ILogger<CouponService> logger)
+            ILogger<CouponService> logger,
+            ICouponsQuery couponsQuery)
         {
             _repository = repository;
             _mapper = mapper;
             _logger = logger;
+            _CouponsQuery = couponsQuery;
         }
 
         public async Task<OperationResult<int>> Add(CouponDto dto)
@@ -124,6 +129,50 @@ namespace TechSouq.Application.Services
 
             _logger.LogInformation("Coupon Get by Code:{Code} Successfully", Code);
             return OperationResult<GetCouponDto>.Success(couponDto);
+        }
+
+        public async Task<OperationResult<CouponDto>> GetCouponById(int id)
+        {
+
+            if (id <= 0)
+            {
+                _logger.LogWarning("Invalid Id: ({CouponId}).", id);
+                return OperationResult<CouponDto>.BadRequest("Invalid id");
+            }
+
+            var Coupon = await _CouponsQuery.GetCouponById(id);
+
+            if (Coupon==null)
+            {
+                _logger.LogWarning("Coupon id Is Not Exists for id:{id} ", id);
+                return OperationResult<CouponDto>.BadRequest("Coupon Code Is Not Exists");
+            }
+
+            _logger.LogInformation("Coupon Get by id:{id} Successfully", id);
+            return OperationResult<CouponDto>.Success(Coupon);
+        }
+
+        public async Task RunDailyCouponsCleanupJob()
+        {
+             await _repository.RemoveAllExpiredCouponsAsync();
+
+            _logger.LogInformation($"Hangfire Job Executed: Removed expiration  Coupons");
+
+        }
+
+        public async Task<OperationResult<PagedResponse<CouponSummaryDto>>> GetAllCouponsPaged(int pageNumber, int pageSize, string? CodeSearch)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                _logger.LogWarning("Invalid data Pagenumber:{pageNumber} or pageSize:{pageSize}", pageNumber, pageSize);
+                return OperationResult<PagedResponse<CouponSummaryDto>>.BadRequest("Invalid data");
+            }
+
+            var data = await _CouponsQuery.GetAllCouponsPaged(pageNumber, pageSize, CodeSearch);
+
+            _logger.LogInformation("Get All Coupons Paged Successfully");
+            return OperationResult<PagedResponse<CouponSummaryDto>>.Success(data);
+
         }
     }
 

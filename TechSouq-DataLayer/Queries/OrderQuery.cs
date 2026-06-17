@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using System.Reflection.Metadata.Ecma335;
 using TechSouq.Application.Dtos;
 using TechSouq.Application.Helper;
+using TechSouq.Application.interfaces;
 using TechSouq.Application.Queries;
 using TechSouq.Domain.Entities;
 using TechSouq.Domain.Enums;
@@ -26,13 +27,14 @@ namespace TechSouq.Infrastructure.Queries
         private readonly IOrderRepository _OrderRepository;
         private readonly ICartRepository _CartRepository;
         private readonly IConnectionMultiplexer _redis;
+        private readonly INotificationService _notificationService;
 
         private bool isAnyProductOutofStock = false;
 
         public OrderQuery(AppDbContext appDbContext,ICouponRepository couponRepository,
             ICartItemsQuery cartItemsQueryService, IMapper mapper, IOrderItemRepository orderItemRepository, 
             IOrderRepository orderRepository, ICartRepository CartRepository
-            , IConnectionMultiplexer redis)
+            , IConnectionMultiplexer redis, INotificationService notificationService)
         {
             _appDbContext = appDbContext;
             _couponRepository = couponRepository;
@@ -42,6 +44,7 @@ namespace TechSouq.Infrastructure.Queries
             _OrderRepository = orderRepository;
             _CartRepository = CartRepository;
             _redis = redis;
+            _notificationService = notificationService;
         }
 
         public async Task<decimal> ConfirmOrderAsync(ConfirmOrderDto confirmOrderDto,int cartId, int userId,bool calculateOnly = false)
@@ -124,6 +127,8 @@ namespace TechSouq.Infrastructure.Queries
                 }
 
 
+
+
                 var productIds = cartitemsAndProductDetils.Select(x => x.ProductId).ToList();
 
                 var productsToUpdate = await _appDbContext.Products
@@ -184,6 +189,8 @@ namespace TechSouq.Infrastructure.Queries
                 {
                     ClearProductPagesCache.ClearProductPagesCacheAsync(_redis);
                 }
+
+                await _notificationService.SendNewOrderNotificationAsync($"New order placed for ${order.TotalAmount}");
 
                     return order.TotalAmount;
             }

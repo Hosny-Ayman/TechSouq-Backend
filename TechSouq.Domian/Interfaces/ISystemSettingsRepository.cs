@@ -21,5 +21,7 @@ namespace TechSouq.Domain.Interfaces
         Task<SystemSettings?> GetByKey(string Key);
 
         Task<bool> IsExists(string settingKey);
+
+        Task<List<SystemSettings>> GetAllSystemSettings();
     }
 }

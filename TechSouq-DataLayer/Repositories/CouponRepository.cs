@@ -44,7 +44,7 @@ namespace TechSouq.Infrastructure.Repositories
 
         public async Task<Coupon?> GetById(int id)
         {
-            return await _context.Coupons.AsNoTracking()
+            return await _context.Coupons
               .FirstOrDefaultAsync(x => x.Id == id);
         }
 
@@ -74,6 +74,11 @@ namespace TechSouq.Infrastructure.Repositories
         {
             return await _context.Coupons
                 .AnyAsync(x => x.Code == code);
+        }
+
+        public async Task RemoveAllExpiredCouponsAsync()
+        {
+             await _context.Coupons.Where(x => x.ExpiryDate <= DateTime.Now).ExecuteUpdateAsync(s => s.SetProperty(d => d.IsActive, d => false));
         }
 
         public async Task<bool> Update(Coupon coupon)

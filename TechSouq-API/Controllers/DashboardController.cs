@@ -20,7 +20,7 @@ namespace TechSouq.API.Controllers
         }
 
         [HttpGet("RecentSales")]
-        public async Task<IActionResult> RecentSales([FromQuery] RecentSaleceQueryParams queryParams)
+        public async Task<IActionResult> RecentSales([FromQuery] IRecentSaleceQueryParams queryParams)
         {
             var result = await _DashboardService.RecentSales(queryParams);
 

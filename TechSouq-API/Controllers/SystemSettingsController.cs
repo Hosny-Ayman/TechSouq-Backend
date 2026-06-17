@@ -53,6 +53,15 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
+        [HttpGet("GetAllSystemSettings")]
+        public async Task<IActionResult> GetAllSystemSettings()
+        {
+            var result = await _service.GetAllSystemSettings();
+
+            return this.ToHttpResponse(result);
+        }
+
+
 
     }
 }

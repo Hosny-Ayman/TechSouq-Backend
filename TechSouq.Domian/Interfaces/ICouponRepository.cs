@@ -21,6 +21,9 @@ namespace TechSouq.Domain.Interfaces
 
         Task<Coupon> GetOnlyActiveCouponByCode(string code);
 
+        Task RemoveAllExpiredCouponsAsync();
+
+
 
 
 

@@ -54,6 +54,22 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
+        [HttpGet("GetCouponById")]
+        public async Task<IActionResult> GetCouponById(int id)
+        {
+            var result = await _service.GetCouponById(id);
+
+            return this.ToHttpResponse(result);
+        }
+
+        [HttpGet("GetAllCouponsPaged")]
+        public async Task<IActionResult> GetAllCouponsPaged(int pageNumber, int pageSize, string? CodeSearch)
+        {
+            var result = await _service.GetAllCouponsPaged(pageNumber,  pageSize, CodeSearch);
+
+            return this.ToHttpResponse(result);
+        }
+
 
     }
 }

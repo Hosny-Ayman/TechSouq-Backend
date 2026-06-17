@@ -46,14 +46,14 @@ namespace TechSouq.API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("GetAllCategoriesAsync")]
-        public async Task<IActionResult> GetAllCategoriesPagedAsync(int PageNumber,int PageSize)
+        public async Task<IActionResult> GetAllCategoriesPagedAsync(int PageNumber,int PageSize, bool RealTimeData = false)
         {
-            var result = await _categorieService.GetAllCategoriesPagedAsync(PageNumber, PageSize);
+            var result = await _categorieService.GetAllCategoriesPagedAsync(PageNumber, PageSize, RealTimeData);
 
             return this.ToHttpResponse(result);
         }
 
-        [HttpPost("Update")]
+        [HttpPut("Update")]
         public async Task<IActionResult> UpdateCategorie(CategorieDto categorieDto)
         {
             var result = await _categorieService.UpdateCategorie(categorieDto);

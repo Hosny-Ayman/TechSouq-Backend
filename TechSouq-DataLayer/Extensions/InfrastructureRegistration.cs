@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TechSouq.Application.interfaces;
 using TechSouq.Application.Queries;
 using TechSouq.Application.Services;
 using TechSouq.DataLayer.Repositories;
@@ -40,6 +41,11 @@ namespace TechSouq.Infrastructure.Extensions
             services.AddScoped<IOrderQuery, OrderQuery>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDashboardQuery, DashboardQuery>();
+            services.AddScoped<IBrandQuery, BrandQuery>();
+            services.AddScoped<ICustomersQuery, CustomersQuery>();
+            services.AddScoped<ICouponsQuery, CouponsQuery>();
+            services.AddScoped<IDeliveryZonesQuery, DeliveryZonesQuery>();
+
 
 
             return services;

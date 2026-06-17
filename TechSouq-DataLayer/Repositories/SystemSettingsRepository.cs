@@ -41,9 +41,14 @@ namespace TechSouq.Infrastructure.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<List<SystemSettings>> GetAllSystemSettings()
+        {
+            return await _context.SystemSettings.AsNoTracking().ToListAsync();
+        }
+
         public async Task<SystemSettings?> GetById(int id)
         {
-            return await _context.SystemSettings.AsNoTracking()
+            return await _context.SystemSettings
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 

@@ -13,7 +13,7 @@ namespace TechSouq.Application.Queries
     {
         public Task<DashboardDto> ShowDashboardInfo();
        
-        public Task <PagedResponse<RecentOrderDto>> RecentSales(RecentSaleceQueryParams Params);
+        public Task <PagedResponse<RecentOrderDto>> RecentSales(IRecentSaleceQueryParams Params);
 
         public Task<List<decimal>> SalesLast7Days();
 

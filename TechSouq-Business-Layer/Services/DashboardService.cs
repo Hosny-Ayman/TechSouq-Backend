@@ -29,7 +29,7 @@ namespace TechSouq.Application.Services
             _boardQueryService = boardQueryService;
         }
 
-        public async Task<OperationResult<PagedResponse<RecentOrderDto>>> RecentSales(RecentSaleceQueryParams queryParams)
+        public async Task<OperationResult<PagedResponse<RecentOrderDto>>> RecentSales(IRecentSaleceQueryParams queryParams)
         {
             var data = await _boardQueryService.RecentSales(queryParams);
 

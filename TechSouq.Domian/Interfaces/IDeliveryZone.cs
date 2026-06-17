@@ -19,5 +19,7 @@ namespace TechSouq.Domain.Interfaces
 
         Task<decimal> GetOnlyShippingCost(string ShippingCity);
 
+        Task<DeliveryZone?> GetById(int id);
+
     }
 }

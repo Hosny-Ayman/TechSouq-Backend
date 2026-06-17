@@ -16,9 +16,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using TechSouq.API;
 using TechSouq.API.Extensions;
+using TechSouq.API.Hubs;
 using TechSouq.API.Policies;
 using TechSouq.Application;
 using TechSouq.Application.Extensions;
+using TechSouq.Application.interfaces;
 using TechSouq.Application.Queries;
 using TechSouq.Infrastructure.Data;
 using TechSouq.Infrastructure.Extensions;
@@ -85,6 +87,9 @@ namespace TechSouq_API
                 {
                     context.Token = token;
                 }
+
+                
+
                 return Task.CompletedTask;
             }
           };
@@ -152,6 +157,10 @@ namespace TechSouq_API
                 //builder.Services.AddFluentValidationClientsideAdapters();
 
                 builder.Services.AddCustomRateLimiting();
+
+                builder.Services.AddSignalR();
+
+                builder.Services.AddScoped<INotificationService, NotificationService>();
 
                 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 builder.Services.AddEndpointsApiExplorer();
@@ -221,6 +230,13 @@ namespace TechSouq_API
                     "Remove-Expired-Discounts-Job",
                     service => service.RunDailyDiscountCleanupJob(),
                     Cron.Daily);
+
+                RecurringJob.AddOrUpdate<TechSouq.Application.Services.CouponService>(
+                   "Remove-Expired-Coupons-Job",
+                   service => service.RunDailyCouponsCleanupJob(),
+                   Cron.Daily);
+
+                app.MapHub<NotificationHub>("/notificationHub");
 
                 app.Run();
             }

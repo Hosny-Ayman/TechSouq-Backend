@@ -57,6 +57,7 @@ namespace TechSouq.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("StrictAuth")]
         [HttpPost("RegisterStaff")]
         public async Task<IActionResult> RegisterStaff(RegisterDto dto, int roleId)
         {
