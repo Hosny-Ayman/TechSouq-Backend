@@ -8,7 +8,7 @@ using TechSouq.Application.Services;
 
 namespace TechSouq.API.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    //[Authorize(Roles ="Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class RolesController : ControllerBase
@@ -16,6 +16,7 @@ namespace TechSouq.API.Controllers
         private readonly RoleService _roleService;
         public RolesController(RoleService roleService) => _roleService = roleService;
 
+        [AllowAnonymous]
         [HttpPost("Create")]
         public async Task<IActionResult> CreateRole(RoleDto dto)
         {

@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System.Collections.Generic;
@@ -27,6 +30,8 @@ namespace TechSouq.Application.Services
         private readonly IDistributedCache _cash;
         private readonly IConnectionMultiplexer _redis;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IConfiguration _config;
+        private readonly Cloudinary _cloudinary;
 
         public ProductService(
               IProductRepository productRepository,
@@ -34,8 +39,10 @@ namespace TechSouq.Application.Services
               ILogger<ProductService> logger,
               IProductQuery productQueryService,
               IDistributedCache distributedCache,
-              IConnectionMultiplexer redis
-            , IWebHostEnvironment webHostEnvironment
+              IConnectionMultiplexer redis, 
+              IWebHostEnvironment webHostEnvironment,
+              IConfiguration configuration
+
               ) 
         {
             _productRepository = productRepository;
@@ -45,6 +52,15 @@ namespace TechSouq.Application.Services
             _cash = distributedCache;
             _redis = redis;
             _webHostEnvironment = webHostEnvironment;
+            _config = configuration;
+
+            var acc = new Account(_config["CloudinarySettings:CloudName"],
+            _config["CloudinarySettings:ApiKey"],
+            _config["CloudinarySettings:ApiSecret"]
+                );
+
+            _cloudinary = new Cloudinary(acc);
+
 
         }
 
@@ -63,20 +79,39 @@ namespace TechSouq.Application.Services
         {
             if (mainImage == null || mainImage.Length == 0) return null;
 
-            string uploadsFolder = GetUploadsFolder();
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + mainImage.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            bool useCloudinary = _config.GetValue<bool>("UseCloudinary");
 
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            if (useCloudinary)
             {
-                await mainImage.CopyToAsync(fileStream);
-            }
+                using var stream = mainImage.OpenReadStream();
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(mainImage.FileName, stream),
+                    Folder = "TechSouq_Products" 
+                };
 
-            rollbackPaths.Add(filePath);
-            return uniqueFileName;
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                
+                return uploadResult.SecureUrl.ToString();
+            }
+            else
+            {
+                string uploadsFolder = GetUploadsFolder();
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + mainImage.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await mainImage.CopyToAsync(fileStream);
+                }
+
+                rollbackPaths.Add(filePath);
+                return uniqueFileName;
+            }
         }
 
-       
+
         private async Task<List<string>> AddImagesToFileAsync(List<IFormFile>? images, List<string> rollbackPaths)
         {
             var uniqueFilesName = new List<string>();
@@ -84,23 +119,46 @@ namespace TechSouq.Application.Services
             if (images == null || !images.Any())
                 return uniqueFilesName;
 
-            string uploadsFolder = GetUploadsFolder();
-            var uploadTasks = new List<Task>();
+            bool useCloudinary = _config.GetValue<bool>("UseCloudinary");
 
-            foreach (var image in images)
+            if (useCloudinary)
             {
-                if (image.Length == 0) continue;
+                foreach (var image in images)
+                {
+                    if (image.Length == 0) continue;
 
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using var stream = image.OpenReadStream();
+                    var uploadParams = new ImageUploadParams
+                    {
+                        File = new FileDescription(image.FileName, stream),
+                        Folder = "TechSouq_Products"
+                    };
 
-                uniqueFilesName.Add(uniqueFileName);
-                rollbackPaths.Add(filePath); 
+                    var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                    uniqueFilesName.Add(uploadResult.SecureUrl.ToString()); 
+                }
+            }
+            else
+            {
+                string uploadsFolder = GetUploadsFolder();
+                var uploadTasks = new List<Task>();
 
-                uploadTasks.Add(SaveFileAsync(image, filePath));
+                foreach (var image in images)
+                {
+                    if (image.Length == 0) continue;
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    uniqueFilesName.Add(uniqueFileName);
+                    rollbackPaths.Add(filePath);
+
+                    uploadTasks.Add(SaveFileAsync(image, filePath));
+                }
+
+                await Task.WhenAll(uploadTasks);
             }
 
-            await Task.WhenAll(uploadTasks);
             return uniqueFilesName;
         }
 

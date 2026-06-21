@@ -33,6 +33,8 @@ namespace TechSouq_API
         {
             Serilog.Debugging.SelfLog.Enable(msg => System.Diagnostics.Debug.WriteLine(msg));
 
+            var seqUrl = Environment.GetEnvironmentVariable("SEQ_CONNECTION") ?? "http://localhost:5341";
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .Enrich.WithProperty("Application", "TechSouq_API")
@@ -40,16 +42,14 @@ namespace TechSouq_API
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .WriteTo.Console()
                 .WriteTo.File(
-                @"D:\Programming 2026\TechSouq Project\TechSouqLogs\log-.txt",
+                "Logs/log-.txt",
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
                 buffered: false)
-                .WriteTo.Seq("http://localhost:5341")
+                .WriteTo.Seq(seqUrl) 
                 .CreateLogger();
 
             Log.Information("Program Work Good");
-
-
 
             try
             {
@@ -57,49 +57,49 @@ namespace TechSouq_API
 
                 builder.Host.UseSerilog();
 
-                var ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+                var ConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION")
+                                       ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-
+                var redisConnection = Environment.GetEnvironmentVariable("REDIS_CONNECTION")
+                                      ?? builder.Configuration.GetConnectionString("Redis")
+                                      ?? "localhost:6379";
 
                 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(ConnectionString));
 
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            RoleClaimType = ClaimTypes.Role
-        };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var token = context.Request.Cookies["accessToken"];
-                if (!string.IsNullOrEmpty(token))
+                .AddJwtBearer(options =>
                 {
-                    context.Token = token;
-                }
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+                        RoleClaimType = ClaimTypes.Role
+                    };
 
-                
-
-                return Task.CompletedTask;
-            }
-          };
-        });
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var token = context.Request.Cookies["accessToken"];
+                            if (!string.IsNullOrEmpty(token))
+                            {
+                                context.Token = token;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
 
                 builder.Services.AddHangfire(config => config
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(ConnectionString)); 
+                    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UseSqlServerStorage(ConnectionString)); 
 
                 builder.Services.AddHangfireServer();
 
@@ -136,25 +136,20 @@ namespace TechSouq_API
 
                 builder.Services.AddStackExchangeRedisCache(options =>
                 {
-                    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-                    options.InstanceName = "TechSouq_"; 
+                    options.Configuration = redisConnection;
+                    options.InstanceName = "TechSouq_";
                 });
 
                 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+                    ConnectionMultiplexer.Connect(redisConnection));
 
                 StripeConfiguration.ApiKey = builder.Configuration["StripeSettings:SecretKey"];
-
-
 
                 builder.Services.AddInfrastructureServices();
 
                 builder.Services.AddApplicationServices();
 
-                // Add services to the container.
-
                 builder.Services.AddFluentValidationAutoValidation();
-                //builder.Services.AddFluentValidationClientsideAdapters();
 
                 builder.Services.AddCustomRateLimiting();
 
@@ -162,7 +157,6 @@ namespace TechSouq_API
 
                 builder.Services.AddScoped<INotificationService, NotificationService>();
 
-                // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
                 {
@@ -177,44 +171,50 @@ namespace TechSouq_API
                     });
 
                     options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            Array.Empty<string>()
+                        }
+                    });
                 });
-
-                //builder.Services.AddAutoMapper(typeof(TechSouq.Application.Mappings.MappingProfiles));
 
                 builder.Services.AddCorsPolicy(builder.Configuration);
 
                 var app = builder.Build();
 
+                using (var scope = app.Services.CreateScope())
+                {
+                    var services = scope.ServiceProvider;
+                    try
+                    {
+                        var context = services.GetRequiredService<AppDbContext>();
+                        context.Database.Migrate();
+                        Log.Information("Database Migrated Successfully!");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "An error occurred while migrating the database.");
+                    }
+                }
+
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-                // Configure the HTTP request pipeline.
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
+                app.UseSwagger();
+                app.UseSwaggerUI();
 
                 app.UseCors("TechSouqCorsPolicy");
 
-
                 app.UseStaticFiles();
 
-
                 app.UseHttpsRedirection();
-
 
                 app.UseAuthentication();
 
@@ -224,8 +224,10 @@ namespace TechSouq_API
 
                 app.MapControllers();
 
-
-                app.UseHangfireDashboard("/hangfire");
+                app.UseHangfireDashboard("/hangfire", new DashboardOptions
+                {
+                    Authorization = new[] { new HangfireAuthorizationFilter() }
+                });
                 RecurringJob.AddOrUpdate<TechSouq.Application.Services.ProductService>(
                     "Remove-Expired-Discounts-Job",
                     service => service.RunDailyDiscountCleanupJob(),
@@ -248,6 +250,15 @@ namespace TechSouq_API
             {
                 Log.CloseAndFlush();
             }
+        }
+    }
+
+    public class HangfireAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizationFilter
+    {
+        public bool Authorize(Hangfire.Dashboard.DashboardContext context)
+        {
+            
+            return true;
         }
     }
 }

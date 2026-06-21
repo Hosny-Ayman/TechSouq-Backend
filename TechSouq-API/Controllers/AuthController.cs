@@ -25,12 +25,16 @@ namespace TechSouq.API.Controllers
 
         private void SetRefreshTokenInCookie(string refreshToken)
         {
+            bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Expires = DateTime.UtcNow.AddDays(7),
-                Secure = true,
-                SameSite = SameSiteMode.None
+
+                Secure = !isDocker,
+
+                SameSite = isDocker ? SameSiteMode.Lax : SameSiteMode.None
             };
 
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
@@ -38,12 +42,16 @@ namespace TechSouq.API.Controllers
 
         private void SetAccessTokenInCookie(string accessToken)
         {
+            bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Expires = DateTime.UtcNow.AddDays(7),
-                Secure = true,
-                SameSite = SameSiteMode.None
+
+                Secure = !isDocker,
+
+                SameSite = isDocker ? SameSiteMode.Lax : SameSiteMode.None
             };
 
             Response.Cookies.Append("accessToken", accessToken, cookieOptions);
@@ -56,7 +64,8 @@ namespace TechSouq.API.Controllers
             return this.ToHttpResponse(result);
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         [EnableRateLimiting("StrictAuth")]
         [HttpPost("RegisterStaff")]
         public async Task<IActionResult> RegisterStaff(RegisterDto dto, int roleId)
@@ -106,7 +115,7 @@ namespace TechSouq.API.Controllers
 
             if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
             {
-                return Unauthorized(new { message = "Tokens are missing." });
+                return BadRequest(new { message = "Tokens are missing" });
             }
 
             var tokenDto = new TokenDto { AccessToken = accessToken, RefreshToken = refreshToken };
