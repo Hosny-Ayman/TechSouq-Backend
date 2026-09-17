@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # TechSouq Backend API
 
 Backend API for the TechSouq e-commerce application, built with ASP.NET Core 8 and SQL Server.
@@ -241,4 +240,3 @@ A robust, highly scalable, and enterprise-grade secure e-commerce RESTful API bu
    * JWT Secret Key & Google Client ID
 3. Apply Entity Framework Migrations: `dotnet ef database update`
 4. Run the application: `dotnet run`
->>>>>>> bfe721c4a7650c9c8647b7d76e120498386dd1ae
