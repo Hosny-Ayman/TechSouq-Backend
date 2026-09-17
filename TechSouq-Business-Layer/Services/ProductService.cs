@@ -92,7 +92,12 @@ namespace TechSouq.Application.Services
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-                
+                if (uploadResult.Error != null)
+                {
+                    _logger.LogError("Cloudinary Upload Error (Single Image): {ErrorMessage}", uploadResult.Error.Message);
+                    return null;
+                }
+
                 return uploadResult.SecureUrl.ToString();
             }
             else
@@ -135,7 +140,17 @@ namespace TechSouq.Application.Services
                     };
 
                     var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                    uniqueFilesName.Add(uploadResult.SecureUrl.ToString()); 
+
+                    if (uploadResult.Error != null)
+                    {
+                        _logger.LogError("Cloudinary Upload Error (Additional Images): {ErrorMessage}", uploadResult.Error.Message);
+                        continue; 
+                    }
+
+                    if (uploadResult.SecureUrl != null)
+                    {
+                        uniqueFilesName.Add(uploadResult.SecureUrl.ToString());
+                    }
                 }
             }
             else

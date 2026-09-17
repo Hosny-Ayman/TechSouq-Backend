@@ -24,6 +24,7 @@ using TechSouq.Application.interfaces;
 using TechSouq.Application.Queries;
 using TechSouq.Infrastructure.Data;
 using TechSouq.Infrastructure.Extensions;
+// using BetterStack.Logs.Serilog; 
 
 namespace TechSouq_API
 {
@@ -33,7 +34,7 @@ namespace TechSouq_API
         {
             Serilog.Debugging.SelfLog.Enable(msg => System.Diagnostics.Debug.WriteLine(msg));
 
-            var seqUrl = Environment.GetEnvironmentVariable("SEQ_CONNECTION") ?? "http://localhost:5341";
+            var betterStackToken = Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN") ?? "vk8ybpaadVqdTC5RdB6Ff2pp";
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
@@ -46,7 +47,7 @@ namespace TechSouq_API
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
                 buffered: false)
-                .WriteTo.Seq(seqUrl) 
+                .WriteTo.BetterStack(sourceToken: betterStackToken)
                 .CreateLogger();
 
             Log.Information("Program Work Good");
@@ -99,7 +100,7 @@ namespace TechSouq_API
                     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
                     .UseSimpleAssemblyNameTypeSerializer()
                     .UseRecommendedSerializerSettings()
-                    .UseSqlServerStorage(ConnectionString)); 
+                    .UseSqlServerStorage(ConnectionString));
 
                 builder.Services.AddHangfireServer();
 
@@ -257,7 +258,6 @@ namespace TechSouq_API
     {
         public bool Authorize(Hangfire.Dashboard.DashboardContext context)
         {
-            
             return true;
         }
     }
